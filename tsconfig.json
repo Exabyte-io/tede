@@ -30,7 +30,7 @@
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": []
+    "types": ["cypress"],
   },
   "include": [
     "./src/js"
