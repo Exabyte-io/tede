@@ -1,14 +1,23 @@
-# template-definitions-js-py
+# TeDe
 
+TEst DEfinitions. A dual repository (JavaScript and Python) containing useful code for testing.
 
-A template for a dual repository (JavaScript and Python).
+## Usage
 
-The GitHub workflow requires the following variables to be defined:
+To be added.
+
+## Developer Notes
+
+(remaining from the template repository)
+
+### GitHub workflow
+
+The workflow requires the following variables to be defined:
 
   - `secrets.BOT_GITHUB_TOKEN`
   - `secrets.BOT_GITHUB_KEY`
 
-## Initialization
+### Package Initialization
 
 When creating a new repository from this template, follow the items on the following checklist:
 
