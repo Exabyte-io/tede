@@ -7,7 +7,7 @@ declare global {
     }
 }
 
-export default class BrowserFactory {
+export default class BrowserManager {
     static setBrowserSettings(settings: BrowserSettings) {
         window.browser = new Browser(settings);
     }

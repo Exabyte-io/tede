@@ -1,5 +1,5 @@
 import { Browser } from "./Browser";
-import BrowserFactory from "./BrowserFactory";
+import BrowserManager from "./BrowserManager";
 
 const modalBackdrop = ".modal-backdrop.fade";
 
@@ -10,7 +10,7 @@ export default class Widget {
 
     constructor(selector: string) {
         this.selector = selector;
-        this.browser = BrowserFactory.getBrowser();
+        this.browser = BrowserManager.getBrowser();
     }
 
     waitForVisible() {
