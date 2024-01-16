@@ -1,7 +1,7 @@
 [project]
-name = "mat3ra-templator"
+name = "mat3ra-tede"
 dynamic = ["version"]
-description = "A template for Python projects."
+description = "Tests definitions for Python projects."
 readme = "README.md"
 requires-python = ">=3.8"
 license = {file = "LICENSE.md"}
