@@ -1,7 +1,7 @@
 {
     "name": "@mat3ra/tede",
     "version": "0.0.0",
-    "description": "Tests definitions Py JS",
+    "description": "TEst DEfinitions (TEDE)",
     "author": "Exabyte Inc.",
     "license": "ISC",
     "main": "lib/index.js",
