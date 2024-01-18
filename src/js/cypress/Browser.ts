@@ -29,6 +29,10 @@ export class IframeBrowser {
         return this.#body.find(selector, { timeout }).should("be.visible");
     }
 
+    waitForVisibleByXpath(selector: string, timeout = this.settings.renderTimeoutShort) {
+        return this.#body.xpath(selector, { timeout }).should("be.visible");
+    }
+
     setInputValue(
         selector: string,
         value: string | number,
