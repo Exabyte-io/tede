@@ -136,7 +136,7 @@ export class Browser {
         });
     }
 
-    geInputValue(selector: string) {
+    getInputValue(selector: string) {
         return cy.get(selector).invoke("val");
     }
 
