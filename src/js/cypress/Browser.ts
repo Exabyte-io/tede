@@ -169,7 +169,7 @@ export class Browser {
     }
 
     isExisting(selector: string) {
-        return this.getElement(selector).should((el) => el.length > 0);
+        return this.getElement(selector).then((el) => el.length > 0);
     }
 
     getElement(selector: string) {
