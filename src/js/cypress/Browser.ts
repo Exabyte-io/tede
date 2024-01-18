@@ -136,7 +136,7 @@ export class Browser {
         });
     }
 
-    getInputValue(selector: string) {
+    getInputValue(selector: string): Cypress.Chainable<string> {
         return cy.get(selector).invoke("val");
     }
 
@@ -166,6 +166,10 @@ export class Browser {
 
     isChecked(selector: string) {
         return cy.get(selector).then((elem) => elem.is(":checked"));
+    }
+
+    isExisting(selector: string) {
+        return this.getElement(selector).should((el) => el.length > 0);
     }
 
     getElement(selector: string) {
