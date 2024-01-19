@@ -13,8 +13,8 @@ export default class Widget {
         this.browser = BrowserManager.getBrowser();
     }
 
-    waitForVisible() {
-        return this.browser.waitForVisible(this.selector);
+    waitForVisible(timeout?: number) {
+        return this.browser.waitForVisible(this.selector, timeout);
     }
 
     waitForDisappear(timeout?: number) {
