@@ -29,6 +29,10 @@ export class IframeBrowser {
         return this.#body.find(selector, { timeout }).should("be.visible");
     }
 
+    waitForVisibleByXpath(selector: string, timeout = this.settings.renderTimeoutShort) {
+        return this.#body.xpath(selector, { timeout }).should("be.visible");
+    }
+
     setInputValue(
         selector: string,
         value: string | number,
@@ -136,7 +140,7 @@ export class Browser {
         });
     }
 
-    geInputValue(selector: string) {
+    getInputValue(selector: string): Cypress.Chainable<string> {
         return cy.get(selector).invoke("val");
     }
 
@@ -166,6 +170,10 @@ export class Browser {
 
     isChecked(selector: string) {
         return cy.get(selector).then((elem) => elem.is(":checked"));
+    }
+
+    isExisting(selector: string) {
+        return cy.get("body").then((body) => body.find(selector).length > 0);
     }
 
     getElement(selector: string) {
