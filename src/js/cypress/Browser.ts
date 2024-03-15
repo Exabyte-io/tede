@@ -1,22 +1,28 @@
 /* eslint-disable class-methods-use-this */
 import "@cypress/xpath";
 
+export type BrowserTimeout = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "xxxl";
+
 export interface BrowserSettings {
-    renderTimeoutShort: number;
-    renderTimeoutMedium: number;
-    renderTimeoutLong: number;
+    timeouts: {
+        [key in BrowserTimeout]: number;
+    };
 }
 
 export class IframeBrowser {
-    defaultTimeout: number;
-
     #body: Cypress.Chainable;
 
-    constructor(selector: string, defaultTimeout: number) {
-        this.defaultTimeout = defaultTimeout;
+    private getTimeoutTime(timeout: BrowserTimeout) {
+        return this.settings.timeouts[timeout];
+    }
+
+    readonly settings: BrowserSettings;
+
+    constructor(selector: string, settings: BrowserSettings, iframeTimeout: BrowserTimeout) {
+        this.settings = settings;
 
         this.#body = cy
-            .get(selector, { timeout: this.defaultTimeout })
+            .get(selector, { timeout: this.getTimeoutTime(iframeTimeout) })
             .its("0.contentDocument.body")
             .should("not.be.empty", {})
             // wraps "body" DOM element to allow
@@ -25,12 +31,16 @@ export class IframeBrowser {
             .then(cy.wrap);
     }
 
-    waitForVisible(selector: string, timeout = this.defaultTimeout) {
-        return this.#body.find(selector, { timeout }).should("be.visible");
+    waitForVisible(selector: string, timeout: BrowserTimeout = "sm") {
+        return this.#body
+            .find(selector, { timeout: this.getTimeoutTime(timeout) })
+            .should("be.visible");
     }
 
-    waitForVisibleByXpath(selector: string, timeout = this.defaultTimeout) {
-        return this.#body.xpath(selector, { timeout }).should("be.visible");
+    waitForVisibleByXpath(selector: string, timeout: BrowserTimeout = "sm") {
+        return this.#body
+            .xpath(selector, { timeout: this.getTimeoutTime(timeout) })
+            .should("be.visible");
     }
 
     setInputValue(
@@ -60,32 +70,36 @@ export class Browser {
         this.settings = settings;
     }
 
+    private getTimeoutTime(timeout: BrowserTimeout) {
+        return this.settings.timeouts[timeout];
+    }
+
     go(path: string) {
         return cy.visit(path);
     }
 
-    iframe(selector: string, timeout?: number) {
-        return new IframeBrowser(selector, timeout || this.settings.renderTimeoutShort);
+    iframe(selector: string, defaultTimeout: BrowserTimeout = "sm") {
+        return new IframeBrowser(selector, this.settings, defaultTimeout);
     }
 
-    waitForVisible(selector: string, timeout = this.settings.renderTimeoutShort) {
-        return cy.get(selector, { timeout }).should("be.visible");
+    waitForVisible(selector: string, timeout: BrowserTimeout = "sm") {
+        return cy.get(selector, { timeout: this.getTimeoutTime(timeout) }).should("be.visible");
     }
 
-    waitForDisappear(selector: string, timeout = this.settings.renderTimeoutShort) {
-        return cy.get(selector, { timeout }).should("not.exist");
+    waitForDisappear(selector: string, timeout: BrowserTimeout = "sm") {
+        return cy.get(selector, { timeout: this.getTimeoutTime(timeout) }).should("not.exist");
     }
 
-    waitForHide(selector: string, timeout = this.settings.renderTimeoutShort) {
-        return cy.get(selector, { timeout }).should("be.hidden");
+    waitForHide(selector: string, timeout: BrowserTimeout = "sm") {
+        return cy.get(selector, { timeout: this.getTimeoutTime(timeout) }).should("be.hidden");
     }
 
-    waitForExist(selector: string, timeout = this.settings.renderTimeoutShort) {
-        return cy.get(selector, { timeout }).should("exist");
+    waitForExist(selector: string, timeout: BrowserTimeout = "sm") {
+        return cy.get(selector, { timeout: this.getTimeoutTime(timeout) }).should("exist");
     }
 
-    waitForValue(selector: string, timeout = this.settings.renderTimeoutShort) {
-        return cy.get(selector, { timeout }).should("exist");
+    waitForValue(selector: string, timeout: BrowserTimeout = "sm") {
+        return cy.get(selector, { timeout: this.getTimeoutTime(timeout) }).should("exist");
     }
 
     /**
