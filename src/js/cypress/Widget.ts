@@ -1,4 +1,4 @@
-import { Browser } from "./Browser";
+import { Browser, BrowserTimeout } from "./Browser";
 import BrowserManager from "./BrowserManager";
 
 const modalBackdrop = ".modal-backdrop.fade";
@@ -13,11 +13,11 @@ export default class Widget {
         this.browser = BrowserManager.getBrowser();
     }
 
-    waitForVisible(timeout?: number) {
+    waitForVisible(timeout?: BrowserTimeout) {
         return this.browser.waitForVisible(this.selector, timeout);
     }
 
-    waitForDisappear(timeout?: number) {
+    waitForDisappear(timeout?: BrowserTimeout) {
         return this.browser.waitForDisappear(this.selector, timeout);
     }
 
