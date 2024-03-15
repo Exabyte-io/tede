@@ -9,6 +9,19 @@ export interface BrowserSettings {
     };
 }
 
+const defaultSettings = {
+    timeouts: {
+        xxs: 1 * 1000,
+        xs: 3 * 1000,
+        sm: 10 * 1000,
+        md: 30 * 1000,
+        lg: 60 * 1000,
+        xl: 180 * 1000,
+        xxl: 600 * 1000,
+        xxxl: 1800 * 1000,
+    },
+};
+
 export class IframeBrowser {
     #body: Cypress.Chainable;
 
@@ -66,7 +79,7 @@ export class IframeBrowser {
 export class Browser {
     readonly settings: BrowserSettings;
 
-    constructor(settings: BrowserSettings) {
+    constructor(settings: BrowserSettings = defaultSettings) {
         this.settings = settings;
     }
 
