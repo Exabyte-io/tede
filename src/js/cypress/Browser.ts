@@ -8,15 +8,15 @@ export interface BrowserSettings {
 }
 
 export class IframeBrowser {
-    settings: BrowserSettings;
+    defaultTimeout: number;
 
     #body: Cypress.Chainable;
 
-    constructor(settings: BrowserSettings, selector: string) {
-        this.settings = settings;
+    constructor(selector: string, defaultTimeout: number) {
+        this.defaultTimeout = defaultTimeout;
 
         this.#body = cy
-            .get(selector, { timeout: this.settings.renderTimeoutShort })
+            .get(selector, { timeout: this.defaultTimeout })
             .its("0.contentDocument.body")
             .should("not.be.empty", {})
             // wraps "body" DOM element to allow
@@ -25,11 +25,11 @@ export class IframeBrowser {
             .then(cy.wrap);
     }
 
-    waitForVisible(selector: string, timeout = this.settings.renderTimeoutShort) {
+    waitForVisible(selector: string, timeout = this.defaultTimeout) {
         return this.#body.find(selector, { timeout }).should("be.visible");
     }
 
-    waitForVisibleByXpath(selector: string, timeout = this.settings.renderTimeoutShort) {
+    waitForVisibleByXpath(selector: string, timeout = this.defaultTimeout) {
         return this.#body.xpath(selector, { timeout }).should("be.visible");
     }
 
@@ -64,8 +64,8 @@ export class Browser {
         return cy.visit(path);
     }
 
-    iframe(selector: string) {
-        return new IframeBrowser(this.settings, selector);
+    iframe(selector: string, timeout?: number) {
+        return new IframeBrowser(selector, timeout || this.settings.renderTimeoutShort);
     }
 
     waitForVisible(selector: string, timeout = this.settings.renderTimeoutShort) {
