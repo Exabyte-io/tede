@@ -18,7 +18,7 @@ export default class BrowserManager {
 
     static getBrowser(): Browser {
         if (!window.browser) {
-            throw new Error("No browser object found");
+            window.browser = new Browser();
         }
         return window.browser as Browser;
     }
