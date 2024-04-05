@@ -166,6 +166,15 @@ const REGEXES: Regex[] = [
         },
     },
     {
+        name: "EVAL_REGEX",
+        regex: /^\$EVAL\{(.*)}/,
+        func: (str: string, regex) => {
+            const match = str.match(regex);
+            // eslint-disable-next-line no-new-func
+            return Function('"use strict";return (' + (match ? match[1] : null) + ")")();
+        },
+    },
+    {
         name: "FLOAT_REGEX",
         regex: /^\$FLOAT\{(.*)}/,
         func: (str, regex) => parseFloat(matchRegexp(str, regex)),
