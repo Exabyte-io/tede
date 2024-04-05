@@ -140,7 +140,7 @@ const REGEXES: Regex[] = [
     {
         name: "DATE_REGEX",
         regex: /^\$DATE\{(.*)}/,
-        func: (str, regex) => new Date(matchRegexp(str, regex)),
+        func: (str, regex) => new Date(matchRegexp(str, regex)).toISOString(),
     },
     {
         name: "BOOLEAN_REGEX",
