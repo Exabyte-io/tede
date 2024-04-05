@@ -183,6 +183,10 @@ export class Browser {
         return cy.get(selector).contains(text).click();
     }
 
+    clickOutside(x = 0, y = 0) {
+        return cy.get("body").click(x, y);
+    }
+
     execute<T = unknown>(cb: (win: Cypress.AUTWindow) => T) {
         return cy.window().then((win) => cb(win));
     }
