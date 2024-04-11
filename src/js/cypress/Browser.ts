@@ -74,6 +74,10 @@ export class IframeBrowser {
     select(selector: string, value: string) {
         return this.#body.find(selector).select(value);
     }
+
+    getElementText(selector: string) {
+        return this.#body.get(selector).invoke("text");
+    }
 }
 
 export class Browser {
