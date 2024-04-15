@@ -75,8 +75,16 @@ export class IframeBrowser {
         return this.#body.find(selector).select(value);
     }
 
+    getElement(selector: string) {
+        return cy.get(selector);
+    }
+
     getElementText(selector: string) {
         return this.#body.get(selector).invoke("text");
+    }
+
+    clickOnText(text: string) {
+        return this.#body.contains(text).click();
     }
 }
 
