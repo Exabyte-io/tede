@@ -226,4 +226,16 @@ export class Browser {
             $el[0].dispatchEvent(event);
         });
     }
+
+    check(selector: string) {
+        cy.get(selector).check();
+    }
+
+    uncheck(selector: string) {
+        cy.get(selector).uncheck();
+    }
+
+    getAttribute(selector: string, attribute: string) {
+        return cy.get(selector).invoke("attr", attribute);
+    }
 }
