@@ -81,8 +81,8 @@ export class IframeBrowser {
         return this.#body.find(selector).select(value);
     }
 
-    getElement(selector: string) {
-        return cy.get(selector);
+    getElement(selector: string, timeout: BrowserTimeout = "sm") {
+        return cy.get(selector, { timeout: this.getTimeoutTime(timeout) });
     }
 
     getElementText(selector: string) {
