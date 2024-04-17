@@ -140,7 +140,7 @@ const REGEXES: Regex[] = [
     {
         name: "DATE_REGEX",
         regex: /^\$DATE\{(.*)}/,
-        func: (str, regex) => new Date(matchRegexp(str, regex)),
+        func: (str, regex) => new Date(matchRegexp(str, regex)).toISOString(),
     },
     {
         name: "BOOLEAN_REGEX",
@@ -163,6 +163,15 @@ const REGEXES: Regex[] = [
         func: (str, regex) => {
             const matched = str.match(regex);
             return JSON.parse(matched ? matched[1] : "");
+        },
+    },
+    {
+        name: "EVAL_REGEX",
+        regex: /^\$EVAL\{(.*)}/,
+        func: (str: string, regex) => {
+            const match = str.match(regex);
+            // eslint-disable-next-line no-new-func
+            return Function('"use strict";return (' + (match ? match[1] : null) + ")")();
         },
     },
     {

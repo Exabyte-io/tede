@@ -179,8 +179,12 @@ export class Browser {
         return cy.xpath(path).click();
     }
 
-    clickOnText(text: string) {
-        return cy.contains(text).click();
+    clickOnText(text: string, selector = "body") {
+        return cy.get(selector).contains(text).click();
+    }
+
+    clickOutside(x = 0, y = 0) {
+        return cy.get("body").click(x, y);
     }
 
     execute<T = unknown>(cb: (win: Cypress.AUTWindow) => T) {
@@ -213,5 +217,25 @@ export class Browser {
 
     getElementText(selector: string) {
         return cy.get(selector).invoke("text");
+    }
+
+    dispatchEvent(selector: string, event: Event) {
+        return cy.get(selector).then(($el) => {
+            // setting the value onto element and dispatching input
+            // event should trigger React's change event
+            $el[0].dispatchEvent(event);
+        });
+    }
+
+    check(selector: string) {
+        cy.get(selector).check();
+    }
+
+    uncheck(selector: string) {
+        cy.get(selector).uncheck();
+    }
+
+    getAttribute(selector: string, attribute: string) {
+        return cy.get(selector).invoke("attr", attribute);
     }
 }
