@@ -44,6 +44,12 @@ export class IframeBrowser {
             .then(cy.wrap);
     }
 
+    waitForExist(selector: string, timeout: BrowserTimeout = "sm") {
+        return this.#body
+            .find(selector, { timeout: this.getTimeoutTime(timeout) })
+            .should("exist");
+    }
+
     waitForVisible(selector: string, timeout: BrowserTimeout = "sm") {
         return this.#body
             .find(selector, { timeout: this.getTimeoutTime(timeout) })
@@ -83,8 +89,20 @@ export class IframeBrowser {
         return this.#body.get(selector).invoke("text");
     }
 
-    clickOnText(text: string) {
-        return this.#body.contains(text).click();
+    clickOnText(text: string, multiple = false) {
+        return this.#body.contains(text).click({multiple});
+    }
+
+    clickFirst(selector: string, options={}) {
+        return this.#body.find(selector).first().click(options);
+    }
+
+    getElementByXpath(selector: string, timeout: BrowserTimeout = "sm") {
+        return this.#body.xpath(selector, { timeout: this.getTimeoutTime(timeout) });
+    }
+
+    getElementTextByXpath(selector: string, timeout: BrowserTimeout = "sm") {
+        return this.#body.xpath(selector, { timeout: this.getTimeoutTime(timeout) }).invoke("text");
     }
 }
 
