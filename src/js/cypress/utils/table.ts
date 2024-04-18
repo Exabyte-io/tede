@@ -1,5 +1,6 @@
 import { DataTable } from "@badeball/cypress-cucumber-preprocessor";
 import getValue from "lodash/get";
+import moment from "moment";
 import random from "random-seed";
 
 import { getCacheValue } from "./cache";
@@ -141,6 +142,18 @@ const REGEXES: Regex[] = [
         name: "DATE_REGEX",
         regex: /^\$DATE\{(.*)}/,
         func: (str, regex) => new Date(matchRegexp(str, regex)).toISOString(),
+    },
+    {
+        name: "DATE_AGO_REGEX",
+        regex: /^\$DATE_AGO\{(.*)}/,
+        func: (str, regex) => {
+            const matched = str.match(regex);
+            if (!matched) {
+                return null;
+            }
+            const [num, type] = matched[1].split("/");
+            return moment().subtract(num, type).toDate().toISOString();
+        },
     },
     {
         name: "BOOLEAN_REGEX",
