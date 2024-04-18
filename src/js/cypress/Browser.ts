@@ -219,6 +219,16 @@ export class Browser {
         return cy.get(selector).invoke("text");
     }
 
+    getEachElementTexts(selector: string) {
+        const results: string[] = [];
+
+        cy.get(selector).each((item) => {
+            results.push(item.text());
+        });
+
+        return cy.wrap(results);
+    }
+
     dispatchEvent(selector: string, event: Event) {
         return cy.get(selector).then(($el) => {
             // setting the value onto element and dispatching input
@@ -237,5 +247,12 @@ export class Browser {
 
     getAttribute(selector: string, attribute: string) {
         return cy.get(selector).invoke("attr", attribute);
+    }
+
+    getCssProperty(selector: string, property: string) {
+        return cy
+            .get(selector)
+            .invoke("css", property)
+            .then(({ value }) => value);
     }
 }
