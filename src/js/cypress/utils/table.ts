@@ -1,6 +1,6 @@
 import { DataTable } from "@badeball/cypress-cucumber-preprocessor";
 import getValue from "lodash/get";
-import moment from "moment";
+import moment, { unitOfTime } from "moment";
 import random from "random-seed";
 
 import { getCacheValue } from "./cache";
@@ -152,7 +152,10 @@ const REGEXES: Regex[] = [
                 return null;
             }
             const [num, type] = matched[1].split("/");
-            return moment().subtract(num, type).toDate().toISOString();
+            return moment()
+                .subtract(num, type as unitOfTime.DurationConstructor)
+                .toDate()
+                .toISOString();
         },
     },
     {
