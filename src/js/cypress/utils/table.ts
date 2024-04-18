@@ -79,7 +79,7 @@ export function parseValue(str: string) {
  * @param table Table passed from Cucumber step definition.
  * @param context  Context for extracting cached values.
  */
-export function parseTable<T>(table: DataTable): T[] {
+export function parseTable<T = object>(table: DataTable): T[] {
     return table.hashes().map((hash) => {
         const entries = Object.entries(hash).map(([key, value]) => [key, parseValue(value) as T]);
 

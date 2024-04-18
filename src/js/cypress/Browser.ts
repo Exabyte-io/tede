@@ -255,4 +255,16 @@ export class Browser {
             .invoke("css", property)
             .then(({ value }) => value);
     }
+
+    retry(cb: () => Cypress.Chainable<boolean>, become?: boolean, timeout?: number): void;
+
+    retry<T>(cb: () => Cypress.Chainable<T>, become: T, timeout?: number): void;
+
+    retry<T = boolean>(cb: () => Cypress.Chainable<T>, become?: T, timeout?: number) {
+        cy.until({
+            it: cb,
+            become,
+            timeout,
+        });
+    }
 }
