@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import "@cypress/xpath";
 
-export type BrowserTimeout = "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "xxxl";
+export type BrowserTimeout = "zero" | "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "xxxl";
 
 export interface BrowserSettings {
     timeouts: {
@@ -11,6 +11,7 @@ export interface BrowserSettings {
 
 const defaultSettings = {
     timeouts: {
+        zero: 0,
         xxs: 1 * 1000,
         xs: 3 * 1000,
         sm: 10 * 1000,
@@ -224,23 +225,28 @@ export class Browser {
     retry(
         cb: () => Cypress.Chainable<boolean>,
         become?: boolean,
-        delay?: number,
-        timeout?: number,
+        delay?: BrowserTimeout,
+        timeout?: BrowserTimeout,
     ): void;
 
-    retry<T>(cb: () => Cypress.Chainable<T>, become: T, delay?: number, timeout?: number): void;
+    retry<T>(
+        cb: () => Cypress.Chainable<T>,
+        become: T,
+        delay?: BrowserTimeout,
+        timeout?: BrowserTimeout,
+    ): void;
 
     retry<T = boolean>(
         cb: () => Cypress.Chainable<T>,
         become?: T,
-        delay?: number,
-        timeout?: number,
+        delay: BrowserTimeout = "zero",
+        timeout: BrowserTimeout = "md",
     ) {
         cy.until({
             it: cb,
             become,
-            delay,
-            timeout,
+            delay: defaultSettings.timeouts[delay],
+            timeout: defaultSettings.timeouts[timeout],
         });
     }
 }
