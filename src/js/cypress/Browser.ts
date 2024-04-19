@@ -252,22 +252,22 @@ export class Browser {
 }
 
 export class IframeBrowser extends Browser {
-    #body: Cypress.Chainable;
+    #document: Cypress.Chainable;
 
     get(selector: GetParams[0], options?: GetParams[1]) {
-        return this.#body.find(selector, options);
+        return this.#document.find(selector, options);
     }
 
     xpath(selector: XpathParams[0], params?: XpathParams[1]) {
-        return this.#body.xpath(selector, params);
+        return this.#document.xpath(selector, params);
     }
 
     constructor(selector: string, settings: BrowserSettings, iframeTimeout: BrowserTimeout) {
         super(settings);
 
-        this.#body = cy
+        this.#document = cy
             .get(selector, { timeout: this.getTimeoutTime(iframeTimeout) })
-            .its("0.contentDocument.body")
+            .its("0.contentDocument")
             .should("not.be.empty", {})
             // wraps "body" DOM element to allow
             // chaining more Cypress commands, like ".find(...)"
