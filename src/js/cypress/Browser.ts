@@ -22,6 +22,9 @@ const defaultSettings = {
     },
 };
 
+type GetParams = Parameters<Cypress.Chainable["get"]>;
+type XpathParams = Parameters<Cypress.Chainable["xpath"]>;
+
 export class Browser {
     readonly settings: BrowserSettings;
 
@@ -33,20 +36,20 @@ export class Browser {
         return this.settings.timeouts[timeout];
     }
 
-    get get() {
-        return cy.get;
+    get(selector: GetParams[0], options?: GetParams[1]) {
+        return cy.get(selector, options);
     }
 
-    get xpath() {
-        return cy.xpath;
+    xpath(selector: XpathParams[0], params?: XpathParams[1]) {
+        return cy.xpath(selector, params);
     }
 
-    get document() {
-        return cy.document;
+    document() {
+        return cy.document();
     }
 
-    get window() {
-        return cy.window;
+    window() {
+        return cy.window();
     }
 
     go(path: string) {
@@ -245,16 +248,12 @@ export class Browser {
 export class IframeBrowser extends Browser {
     #body: Cypress.Chainable;
 
-    get get() {
-        return this.#body.find;
+    get(selector: GetParams[0], options?: GetParams[1]) {
+        return this.#body.find(selector, options);
     }
 
-    get xpath() {
-        return this.#body.xpath;
-    }
-
-    get document() {
-        return cy.document;
+    xpath(selector: XpathParams[0], params?: XpathParams[1]) {
+        return this.#body.xpath(selector, params);
     }
 
     constructor(selector: string, settings: BrowserSettings, iframeTimeout: BrowserTimeout) {
