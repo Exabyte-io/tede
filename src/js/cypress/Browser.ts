@@ -256,9 +256,11 @@ export class Browser {
 export class IframeBrowser extends Browser {
     #document: Cypress.Chainable;
 
+    private readonly iframeSelector: string;
+
     constructor(selector: string, settings: BrowserSettings, iframeTimeout: BrowserTimeout) {
         super(settings);
-
+        this.iframeSelector = selector;
         this.#document = cy
             .get(selector, { timeout: this.getTimeoutTime(iframeTimeout) })
             .its("0.contentDocument")
@@ -274,24 +276,23 @@ export class IframeBrowser extends Browser {
         return this.#document.xpath(selector, params);
     }
 
-    waitForVisible(selector: string, timeout: BrowserTimeout = "sm"): Cypress.Chainable {
-        console.log("Waiting for visible", selector, timeout);
-        return super.waitForVisible(selector, timeout);
+    waitForVisible(selector: string): Cypress.Chainable {
+        return super.waitForVisible(`${this.iframeSelector}${selector}`);
     }
 
-    waitForVisibleByXpath(selector: string, timeout: BrowserTimeout = "sm") {
-        return this.xpath(selector, { timeout: this.getTimeoutTime(timeout) }).should("be.visible");
+    waitForVisibleByXpath(selector: string) {
+        return this.xpath(selector).should("be.visible");
     }
 
     clickFirst(selector: string, options = {}) {
         return this.get(selector).first().click(options);
     }
 
-    getElementByXpath(selector: string, timeout: BrowserTimeout = "sm") {
-        return this.xpath(selector, { timeout: this.getTimeoutTime(timeout) });
+    getElementByXpath(selector: string) {
+        return this.xpath(selector);
     }
 
-    getElementTextByXpath(selector: string, timeout: BrowserTimeout = "sm") {
-        return this.xpath(selector, { timeout: this.getTimeoutTime(timeout) }).invoke("text");
+    getElementTextByXpath(selector: string) {
+        return this.getElementByXpath(selector).invoke("text");
     }
 }
