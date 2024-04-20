@@ -275,6 +275,7 @@ export class IframeBrowser extends Browser {
     }
 
     waitForVisible(selector: string, timeout: BrowserTimeout = "sm"): Cypress.Chainable {
+        console.log("Waiting for visible", selector, timeout);
         return super.waitForVisible(selector, timeout);
     }
 
