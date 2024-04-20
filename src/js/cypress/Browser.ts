@@ -1,6 +1,8 @@
 /* eslint-disable class-methods-use-this */
 import "@cypress/xpath";
 
+import * as Cypress from "cypress";
+
 export type BrowserTimeout = "zero" | "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "xxxl";
 
 export interface BrowserSettings {
@@ -254,6 +256,16 @@ export class Browser {
 export class IframeBrowser extends Browser {
     #document: Cypress.Chainable;
 
+    constructor(selector: string, settings: BrowserSettings, iframeTimeout: BrowserTimeout) {
+        super(settings);
+
+        this.#document = cy
+            .get(selector, { timeout: this.getTimeoutTime(iframeTimeout) })
+            .its("0.contentDocument")
+            .should("not.be.empty", {})
+            .then(cy.wrap);
+    }
+
     get(selector: GetParams[0], options?: GetParams[1]) {
         return this.#document.find(selector, options);
     }
@@ -262,17 +274,8 @@ export class IframeBrowser extends Browser {
         return this.#document.xpath(selector, params);
     }
 
-    constructor(selector: string, settings: BrowserSettings, iframeTimeout: BrowserTimeout) {
-        super(settings);
-
-        this.#document = cy
-            .get(selector, { timeout: this.getTimeoutTime(iframeTimeout) })
-            .its("0.contentDocument")
-            .should("not.be.empty", {})
-            // wraps "body" DOM element to allow
-            // chaining more Cypress commands, like ".find(...)"
-            // https://on.cypress.io/wrap
-            .then(cy.wrap);
+    waitForVisible(selector: string, timeout: BrowserTimeout = "sm"): Cypress.Chainable {
+        return super.waitForVisible(selector, timeout);
     }
 
     waitForVisibleByXpath(selector: string, timeout: BrowserTimeout = "sm") {
