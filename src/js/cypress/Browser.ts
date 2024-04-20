@@ -37,24 +37,24 @@ export class Browser {
         return this.settings.timeouts[timeout];
     }
 
-    get(selector: GetParams[0], options?: GetParams[1]) {
-        return cy.get(selector, options);
-    }
-
-    xpath(selector: XpathParams[0], params?: XpathParams[1]) {
-        return cy.xpath(selector, params);
-    }
-
-    document() {
+    get document() {
         return cy.document();
     }
 
-    window() {
+    get window() {
         return cy.window();
     }
 
+    get(selector: GetParams[0], options?: GetParams[1]) {
+        return this.document.get(selector, options);
+    }
+
+    xpath(selector: XpathParams[0], params?: XpathParams[1]) {
+        return this.document.xpath(selector, params);
+    }
+
     go(path: string) {
-        return cy.visit(path);
+        return this.document.visit(path);
     }
 
     iframe(selector: string, defaultTimeout: BrowserTimeout = "sm") {
@@ -126,7 +126,7 @@ export class Browser {
     }
 
     clickIfExists(selector: string) {
-        this.document().then(($document) => {
+        this.document.then(($document) => {
             const documentResult = $document.querySelectorAll(selector) as NodeListOf<HTMLElement>;
             if (documentResult.length) {
                 documentResult.forEach((item) => item.click());
@@ -155,7 +155,7 @@ export class Browser {
     }
 
     execute<T = unknown>(cb: (win: Cypress.AUTWindow) => T) {
-        return this.window().then((win) => cb(win));
+        return this.window.then((win) => cb(win));
     }
 
     isVisible(selector: string) {
@@ -254,17 +254,8 @@ export class Browser {
 export class IframeBrowser extends Browser {
     #document: Cypress.Chainable;
 
-    get(selector: GetParams[0], options?: GetParams[1]) {
-        return this.#document.find(selector, options);
-    }
-
-    xpath(selector: XpathParams[0], params?: XpathParams[1]) {
-        return this.#document.xpath(selector, params);
-    }
-
     constructor(selector: string, settings: BrowserSettings, iframeTimeout: BrowserTimeout) {
         super(settings);
-
         this.#document = cy
             .get(selector, { timeout: this.getTimeoutTime(iframeTimeout) })
             .its("0.contentDocument")
@@ -273,6 +264,10 @@ export class IframeBrowser extends Browser {
             // chaining more Cypress commands, like ".find(...)"
             // https://on.cypress.io/wrap
             .then(cy.wrap);
+    }
+
+    get document() {
+        return this.#document;
     }
 
     waitForVisibleByXpath(selector: string, timeout: BrowserTimeout = "sm") {
