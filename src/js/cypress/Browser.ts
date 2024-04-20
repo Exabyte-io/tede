@@ -3,7 +3,19 @@ import "@cypress/xpath";
 
 import * as Cypress from "cypress";
 
-export type BrowserTimeout = "zero" | "xxs" | "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "xxxl";
+export enum TimeoutType {
+    zero = 0,
+    xxs = 1000,
+    xs = 3 * 1000,
+    sm = 10 * 1000,
+    md = 30 * 1000,
+    lg = 60 * 1000,
+    xl = 180 * 1000,
+    xxl = 600 * 1000,
+    xxxl = 1800 * 1000,
+}
+
+export type BrowserTimeout = keyof typeof TimeoutType;
 
 export interface BrowserSettings {
     timeouts: {
@@ -12,23 +24,14 @@ export interface BrowserSettings {
 }
 
 const defaultSettings = {
-    timeouts: {
-        zero: 0,
-        xxs: 1 * 1000,
-        xs: 3 * 1000,
-        sm: 10 * 1000,
-        md: 30 * 1000,
-        lg: 60 * 1000,
-        xl: 180 * 1000,
-        xxl: 600 * 1000,
-        xxxl: 1800 * 1000,
-    },
+    timeouts: TimeoutType,
 };
 
 type GetParams = Parameters<Cypress.Chainable["get"]>;
 type XpathParams = Parameters<Cypress.Chainable["xpath"]>;
+type FindParams = Parameters<Cypress.Chainable["find"]>;
 
-export class Browser {
+class BaseBrowser {
     readonly settings: BrowserSettings;
 
     constructor(settings: BrowserSettings = defaultSettings) {
@@ -43,8 +46,24 @@ export class Browser {
         return cy.get(selector, options);
     }
 
+    getWithTimeout(selector: string, timeout: BrowserTimeout = "sm") {
+        return this.get(selector, { timeout: this.getTimeoutTime(timeout) });
+    }
+
     xpath(selector: XpathParams[0], params?: XpathParams[1]) {
         return cy.xpath(selector, params);
+    }
+
+    xpathWithTimeout(selector: XpathParams[0], timeout: BrowserTimeout = "sm") {
+        return cy.xpath(selector, { timeout: this.getTimeoutTime(timeout) });
+    }
+
+    find(selector: string, params: FindParams[1]) {
+        return cy.find(selector, params);
+    }
+
+    findWithTimeout(selector: string, timeout: BrowserTimeout = "sm") {
+        return cy.find(selector, { timeout: this.getTimeoutTime(timeout) });
     }
 
     document() {
@@ -58,30 +77,27 @@ export class Browser {
     go(path: string) {
         return cy.visit(path);
     }
+}
 
-    iframe(selector: string, defaultTimeout: BrowserTimeout = "sm") {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        return new IframeBrowser(selector, this.settings, defaultTimeout);
+export class Browser extends BaseBrowser {
+    waitForVisible(selector: string, timeout: BrowserTimeout) {
+        return this.getWithTimeout(selector, timeout).should("be.visible");
     }
 
-    waitForVisible(selector: string, timeout: BrowserTimeout = "sm") {
-        return this.get(selector, { timeout: this.getTimeoutTime(timeout) }).should("be.visible");
+    waitForDisappear(selector: string, timeout: BrowserTimeout) {
+        return this.getWithTimeout(selector, timeout).should("not.exist");
     }
 
-    waitForDisappear(selector: string, timeout: BrowserTimeout = "sm") {
-        return this.get(selector, { timeout: this.getTimeoutTime(timeout) }).should("not.exist");
+    waitForHide(selector: string, timeout: BrowserTimeout) {
+        return this.getWithTimeout(selector, timeout).should("be.hidden");
     }
 
-    waitForHide(selector: string, timeout: BrowserTimeout = "sm") {
-        return this.get(selector, { timeout: this.getTimeoutTime(timeout) }).should("be.hidden");
+    waitForExist(selector: string, timeout: BrowserTimeout) {
+        return this.getWithTimeout(selector, timeout).should("exist");
     }
 
-    waitForExist(selector: string, timeout: BrowserTimeout = "sm") {
-        return this.get(selector, { timeout: this.getTimeoutTime(timeout) }).should("exist");
-    }
-
-    waitForValue(selector: string, timeout: BrowserTimeout = "sm") {
-        return this.get(selector, { timeout: this.getTimeoutTime(timeout) }).should("exist");
+    waitForValue(selector: string, timeout: BrowserTimeout) {
+        return this.getWithTimeout(selector, timeout).should("exist");
     }
 
     /**
@@ -251,33 +267,10 @@ export class Browser {
             timeout: defaultSettings.timeouts[timeout],
         });
     }
-}
 
-export class IframeBrowser extends Browser {
-    #document: Cypress.Chainable;
-
-    private readonly iframeSelector: string;
-
-    constructor(selector: string, settings: BrowserSettings, iframeTimeout: BrowserTimeout) {
-        super(settings);
-        this.iframeSelector = selector;
-        this.#document = cy
-            .get(selector, { timeout: this.getTimeoutTime(iframeTimeout) })
-            .its("0.contentDocument")
-            .should("not.be.empty", {})
-            .then(cy.wrap);
-    }
-
-    get(selector: GetParams[0], options?: GetParams[1]) {
-        return this.#document.find(selector, options);
-    }
-
-    xpath(selector: XpathParams[0], params?: XpathParams[1]) {
-        return this.#document.xpath(selector, params);
-    }
-
-    waitForVisible(selector: string): Cypress.Chainable {
-        return super.waitForVisible(`${this.iframeSelector}${selector}`);
+    iframe(selector: string, defaultTimeout: BrowserTimeout = "sm") {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        return new IframeBrowser(selector, this.settings, defaultTimeout);
     }
 
     waitForVisibleByXpath(selector: string) {
@@ -294,5 +287,33 @@ export class IframeBrowser extends Browser {
 
     getElementTextByXpath(selector: string) {
         return this.getElementByXpath(selector).invoke("text");
+    }
+}
+
+export class IframeBrowser extends Browser {
+    selector: string;
+
+    timeout: number;
+
+    constructor(selector: string, settings: BrowserSettings, timeoutKey: BrowserTimeout) {
+        super(settings);
+        this.selector = selector;
+        this.timeout = this.getTimeoutTime(timeoutKey);
+    }
+
+    get(selector: GetParams[0], options?: GetParams[1]) {
+        return this.getIframeBody().find(selector, options);
+    }
+
+    xpath(selector: XpathParams[0], params?: XpathParams[1]) {
+        return this.getIframeBody().xpath(selector, params);
+    }
+
+    getIframeBody() {
+        return cy
+            .get(this.selector, { timeout: this.timeout })
+            .its("0.contentDocument.body", {})
+            .should("not.be.empty")
+            .then(cy.wrap);
     }
 }
