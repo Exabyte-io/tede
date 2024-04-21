@@ -56,7 +56,7 @@ class BaseBrowser {
         return cy.get(selector, options);
     }
 
-    getWithTimeout(selector: string, timeout: BrowserTimeout = "sm") {
+    getWithTimeout(selector: string, timeout: BrowserTimeout = TimeoutType.sm) {
         return this.get(selector, { timeout: this.getTimeoutTime(timeout) });
     }
 
@@ -64,7 +64,7 @@ class BaseBrowser {
         return cy.xpath(selector, params);
     }
 
-    xpathWithTimeout(selector: XpathParams[0], timeout: BrowserTimeout = "sm") {
+    xpathWithTimeout(selector: XpathParams[0], timeout: BrowserTimeout = TimeoutType.sm) {
         return cy.xpath(selector, { timeout: this.getTimeoutTime(timeout) });
     }
 
@@ -72,7 +72,7 @@ class BaseBrowser {
         return cy.find(selector, params);
     }
 
-    findWithTimeout(selector: string, timeout: BrowserTimeout = "sm") {
+    findWithTimeout(selector: string, timeout: BrowserTimeout = TimeoutType.sm) {
         return cy.find(selector, { timeout: this.getTimeoutTime(timeout) });
     }
 
@@ -202,7 +202,7 @@ export class Browser extends BaseBrowser {
         return this.get("body").then((body) => body.find(selector).length > 0);
     }
 
-    getElement(selector: string, timeout: BrowserTimeout = "sm") {
+    getElement(selector: string, timeout: BrowserTimeout = TimeoutType.sm) {
         return this.get(selector, { timeout: this.getTimeoutTime(timeout) });
     }
 
@@ -268,7 +268,7 @@ export class Browser extends BaseBrowser {
         cb: () => Cypress.Chainable<T>,
         become?: T,
         delay: BrowserTimeout = "zero",
-        timeout: BrowserTimeout = "md",
+        timeout: BrowserTimeout = TimeoutType.md,
     ) {
         cy.until({
             it: cb,
@@ -278,7 +278,7 @@ export class Browser extends BaseBrowser {
         });
     }
 
-    iframe(selector: string, defaultTimeout: BrowserTimeout = "sm") {
+    iframe(selector: string, defaultTimeout: BrowserTimeout = TimeoutType.sm) {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         return new IframeBrowser(selector, this.settings, defaultTimeout);
     }
