@@ -4,16 +4,30 @@ import "@cypress/xpath";
 import * as Cypress from "cypress";
 
 export enum TimeoutType {
-    zero = 0,
-    xxs = 1000,
-    xs = 3 * 1000,
-    sm = 10 * 1000,
-    md = 30 * 1000,
-    lg = 60 * 1000,
-    xl = 180 * 1000,
-    xxl = 600 * 1000,
-    xxxl = 1800 * 1000,
+    zero = "zero",
+    xxs = "xxs",
+    xs = "xs",
+    sm = "sm",
+    md = "md",
+    lg = "lg",
+    xl = "xl",
+    xxl = "xxl",
+    xxxl = "xxxl",
 }
+
+const defaultSettings = {
+    timeouts: {
+        zero: 0,
+        xxs: 1 * 1000,
+        xs: 3 * 1000,
+        sm: 10 * 1000,
+        md: 30 * 1000,
+        lg: 60 * 1000,
+        xl: 180 * 1000,
+        xxl: 600 * 1000,
+        xxxl: 1800 * 1000,
+    },
+};
 
 export type BrowserTimeout = keyof typeof TimeoutType;
 
@@ -22,10 +36,6 @@ export interface BrowserSettings {
         [key in BrowserTimeout]: number;
     };
 }
-
-const defaultSettings = {
-    timeouts: TimeoutType,
-};
 
 type GetParams = Parameters<Cypress.Chainable["get"]>;
 type XpathParams = Parameters<Cypress.Chainable["xpath"]>;
