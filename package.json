@@ -26,6 +26,7 @@
         "@types/random-seed": "^0.3.5",
         "cypress": "^13.6.*",
         "lodash": "^4.17.*",
+        "moment": "^2.30.1",
         "random-seed": "^0.3.0",
         "typescript": "^5.0.2"
     },

@@ -1,5 +1,6 @@
 import { DataTable } from "@badeball/cypress-cucumber-preprocessor";
 import getValue from "lodash/get";
+import moment, { unitOfTime } from "moment";
 import random from "random-seed";
 
 import { getCacheValue } from "./cache";
@@ -78,7 +79,7 @@ export function parseValue(str: string) {
  * @param table Table passed from Cucumber step definition.
  * @param context  Context for extracting cached values.
  */
-export function parseTable<T>(table: DataTable): T[] {
+export function parseTable<T = object>(table: DataTable): T[] {
     return table.hashes().map((hash) => {
         const entries = Object.entries(hash).map(([key, value]) => [key, parseValue(value) as T]);
 
@@ -141,6 +142,21 @@ const REGEXES: Regex[] = [
         name: "DATE_REGEX",
         regex: /^\$DATE\{(.*)}/,
         func: (str, regex) => new Date(matchRegexp(str, regex)).toISOString(),
+    },
+    {
+        name: "DATE_AGO_REGEX",
+        regex: /^\$DATE_AGO\{(.*)}/,
+        func: (str, regex) => {
+            const matched = str.match(regex);
+            if (!matched) {
+                return null;
+            }
+            const [num, type] = matched[1].split("/");
+            return moment()
+                .subtract(num, type as unitOfTime.DurationConstructor)
+                .toDate()
+                .toISOString();
+        },
     },
     {
         name: "BOOLEAN_REGEX",
