@@ -251,27 +251,22 @@ export class Browser extends BaseBrowser {
     }
 
     retry(
-        cb: () => Cypress.Chainable<boolean>,
+        cb: () => boolean,
         become?: boolean,
         delay?: BrowserTimeout,
         timeout?: BrowserTimeout,
     ): void;
 
-    retry<T>(
-        cb: () => Cypress.Chainable<T>,
-        become: T,
-        delay?: BrowserTimeout,
-        timeout?: BrowserTimeout,
-    ): void;
+    retry<T>(cb: () => T, become: T, delay?: BrowserTimeout, timeout?: BrowserTimeout): void;
 
     retry<T = boolean>(
-        cb: () => Cypress.Chainable<T>,
+        cb: () => T,
         become?: T,
         delay: BrowserTimeout = "zero",
         timeout: BrowserTimeout = TimeoutType.md,
     ) {
         cy.until({
-            it: cb,
+            it: () => cy.wrap(null).then(cb),
             become,
             delay: defaultSettings.timeouts[delay],
             timeout: defaultSettings.timeouts[timeout],
