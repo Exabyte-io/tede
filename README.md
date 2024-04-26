@@ -52,6 +52,7 @@ Test data access object. It is similar to DAO for test purposes <https://en.wiki
 
 Intermediate level between widgets and test framework (cypress in this case).
 It is available as Cypress window property (`window.browser`) for step definitions and as `this.browser` for any widget and tao.
+Any cypress functions or commands should be used only through this object.
 There are 4 types of methods in the browser object:
 
 1. actions
