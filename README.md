@@ -125,3 +125,22 @@ widget.browser.retry(() => {
 widget.doSomeOtherThings();
 widget.doSomeAnotherThings();
 ```
+
+- In steps try not to use `then` and move it inside widget:
+
+```js
+// Not good, this has to be inside widget method
+widget.browser.retry(() => {
+  return widget.getElementIdFromServer().then((id) => {
+    return widget.getOtherElementIdFromServer().then((otherId) => {
+      const css = widget.getElementCSS(id, otherId);
+      return widget.browser.isVisible(css).then(() => {
+        return isVisible
+      })
+    });
+  })
+});
+
+// Better
+widget.assertElementExistingWithRetry();
+```
