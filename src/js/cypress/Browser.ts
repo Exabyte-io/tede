@@ -270,15 +270,16 @@ export class Browser extends BaseBrowser {
         delay: BrowserTimeout | number = "zero",
         timeout: BrowserTimeout | number = TimeoutType.md,
     ) {
-        const delayNumber = typeof delay === "number" ? delay : defaultSettings.timeouts[delay];
-        const timeoutNumber =
+        const delayMilliseconds =
+            typeof delay === "number" ? delay : defaultSettings.timeouts[delay];
+        const timeoutMilliseconds =
             typeof timeout === "number" ? timeout : defaultSettings.timeouts[timeout];
 
         cy.until({
             it: cb,
             become,
-            delay: delayNumber,
-            timeout: timeoutNumber,
+            delay: delayMilliseconds,
+            timeout: timeoutMilliseconds,
         });
     }
 
