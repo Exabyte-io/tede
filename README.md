@@ -44,6 +44,10 @@ and not when installed as a dependency.
 
 ![alt text](image.png)
 
+### TAO definitions
+
+Test data access object. It is similar to DAO for test purposes <https://en.wikipedia.org/wiki/Data_access_object>
+
 ### Browser object
 
 There are 4 types of methods in the browser object:
@@ -85,10 +89,10 @@ Browser getters:
 - `getElementText`
 - `getAttribute`
 - `getCssProperty`
-- `isVisible`
-- `isSelected`
-- `isChecked`
-- `isExisting`
+- `getIsVisible`
+- `getIsSelected`
+- `getIsChecked`
+- `getIsExisting`
 
 Browser util methods:
 
@@ -102,7 +106,7 @@ Browser util methods:
 
 ```js
 // Wrong:
-widget.browser.retry(() => {
+window.browser.retry(() => {
   return widget.browser.getElementText(selector).then((elementText) => {
     return elementText === "expected text";
   })
@@ -112,27 +116,27 @@ widget.browser.retry(() => {
 widget.browser.assertText(selector, "expected text");
 ```
 
-- If you still need to use `browser.retry` somewhere, it has to be one whole step. Please do not mix it with other actions:
+- Inside step definitions using TAO if you still need to use `browser.retry` somewhere, it has to be isolated in a separate step definition. Please do not mix it with other actions:
 
 ```js
-widget.browser.retry(() => {
-  return widget.checkSomethingOnTheServerSide().then((isReady) => {
+window.browser.retry(() => {
+  return tao.checkSomethingOnTheServerSide().then((isReady) => {
     return Boolean(isReady);
   })
 });
 
-// Move code below to the next step:
+// Move code below to the next step definition:
 widget.doSomeOtherThings();
 widget.doSomeAnotherThings();
 ```
 
-- In steps try reducing `then` usage and move such code inside widget:
+- In steps try reducing `then` usage and move such code inside a widget or tao:
 
 ```js
 // Not good, this has to be inside widget method
 widget.browser.retry(() => {
-  return widget.getElementIdFromServer().then((id) => {
-    return widget.getOtherElementIdFromServer().then((otherId) => {
+  return tao.getElementIdFromServer().then((id) => {
+    return tao.getOtherElementIdFromServer().then((otherId) => {
       const css = widget.getElementCSS(id, otherId);
       return widget.browser.isVisible(css).then(() => {
         return isVisible
@@ -146,3 +150,9 @@ widget.assertElementExistingWithRetry();
 ```
 
 - Do not use Xpath for new steps as it is not supported by Cypress natively and was added from the plugin only for supporting old test steps
+
+- Do not mix TAO and Widgets in the same step definition
+
+- Put step definitions using TAO in the corresponding subfolder. By default, we assume that they use widgets only
+
+- Widgets can use other widgets or TAO. But TAO can't use widgets
