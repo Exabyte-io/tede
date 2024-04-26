@@ -126,7 +126,7 @@ widget.doSomeOtherThings();
 widget.doSomeAnotherThings();
 ```
 
-- In steps try not to use `then` and move it inside widget:
+- In steps try reducing `then` usage and move such code inside widget:
 
 ```js
 // Not good, this has to be inside widget method
@@ -144,3 +144,5 @@ widget.browser.retry(() => {
 // Better
 widget.assertElementExistingWithRetry();
 ```
+
+- Do not use Xpath for new steps as it is not supported by Cypress natively and was added from the plugin only for supporting old test steps
