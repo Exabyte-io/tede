@@ -42,7 +42,13 @@ and not when installed as a dependency.
 
 ### Common architecture
 
-![alt text](image.png)
+![architecture](image.png)
+
+1. **Feature** is the test case. We use Cucumbers Gherkin syntax to define the test case structure. Each feature consists of one or more steps.
+2. **Step** one particular step for a user to do. It can also describe some background processes (like the creation of workflows). Uses widgets to define what exactly needs to be done in the step.
+3. **Widget** - Javascript class that encapsulates the logic of one particular element on the page (button/dropdown/sidebar/header or even a whole page)
+4. **Browser** - Intermediate level between Widgets and Cypress. Aimed to encapsulate/hide the test engine (cypress or chimp). This is the only level that uses cypress.
+5. **Cypress** - Cypress engine
 
 ### TAO definitions
 
@@ -102,6 +108,9 @@ Browser util methods:
 - `retry`
 - `dispatchEvent`
 - `execute`
+
+Getters are the only async methods in the browser object. They should be called only inside Widgets/TAO.
+Do not expose the async nature of these methods to step definitions (there should be no `then` inside step definitions).
 
 ### Suggestions
 
