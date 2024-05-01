@@ -184,14 +184,14 @@ export class Browser extends BaseBrowser {
         return this.get("body").click(x, y);
     }
 
-    execute<T>(cb: (win: Cypress.AUTWindow) => T | null) {
+    execute<T>(cb: (win: Cypress.AUTWindow) => T | null): Cypress.Chainable<T | null> {
         let result: T | null = null;
 
-        return this.window()
-            .then((win) => {
-                result = cb(win) || null;
-            })
-            .then(() => cy.wrap(result)); // force Cypress.Chainable to be a return type of "execute"
+        return this.window().then((win) => {
+            result = cb(win);
+            result = typeof result === "undefined" ? null : result;
+            return cy.wrap(result); // force "execute" to have Cypress.Chainable<T | null> as a return type
+        });
     }
 
     isVisible(selector: string) {
