@@ -191,7 +191,7 @@ export class Browser extends BaseBrowser {
             .then((win) => {
                 result = cb(win) || null;
             })
-            .then(() => cy.wrap(result)); // force Cypress.Chainable to be return type
+            .then(() => cy.wrap(result)); // force Cypress.Chainable to be a return type of "execute"
     }
 
     isVisible(selector: string) {
