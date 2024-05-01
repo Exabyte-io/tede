@@ -1,8 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import "@cypress/xpath";
 
-import * as Cypress from "cypress";
-
 export enum TimeoutType {
     zero = "zero",
     xxs = "xxs",
@@ -40,6 +38,10 @@ export interface BrowserSettings {
 type GetParams = Parameters<Cypress.Chainable["get"]>;
 type XpathParams = Parameters<Cypress.Chainable["xpath"]>;
 type FindParams = Parameters<Cypress.Chainable["find"]>;
+
+function isWindowObject<T>(param: T | Cypress.AUTWindow): param is Cypress.AUTWindow {
+    return typeof param === "object" && param && "document" in param;
+}
 
 class BaseBrowser {
     readonly settings: BrowserSettings;
@@ -182,8 +184,17 @@ export class Browser extends BaseBrowser {
         return this.get("body").click(x, y);
     }
 
-    execute<T = unknown>(cb: (win: Cypress.AUTWindow) => T) {
-        return this.window().then((win) => cb(win));
+    execute<T>(cb: (win: Cypress.AUTWindow) => T) {
+        return this.window()
+            .then((win) => cb(win))
+            .then((result) => {
+                return new Cypress.Promise<T | undefined>((resolve) => {
+                    if (isWindowObject(result)) {
+                        return resolve(undefined);
+                    }
+                    resolve(result);
+                });
+            });
     }
 
     isVisible(selector: string) {
