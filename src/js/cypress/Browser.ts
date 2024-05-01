@@ -187,13 +187,11 @@ export class Browser extends BaseBrowser {
     execute<T>(cb: (win: Cypress.AUTWindow) => T | null) {
         let result: T | null = null;
 
-        this.window()
+        return this.window()
             .then((win) => {
-                result = cb(win);
+                result = cb(win) || null;
             })
-            .then(() => result);
-
-        return cy.wrap(null).then(() => result);
+            .then(() => cy.wrap(result)); // force Cypress.Chainable to be return type
     }
 
     isVisible(selector: string) {
