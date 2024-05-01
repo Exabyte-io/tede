@@ -184,17 +184,16 @@ export class Browser extends BaseBrowser {
         return this.get("body").click(x, y);
     }
 
-    execute<T>(cb: (win: Cypress.AUTWindow) => T) {
-        return this.window()
-            .then((win) => cb(win))
-            .then((result) => {
-                return new Cypress.Promise<T | undefined>((resolve) => {
-                    if (isWindowObject(result)) {
-                        return resolve(undefined);
-                    }
-                    resolve(result);
-                });
-            });
+    execute<T>(cb: (win: Cypress.AUTWindow) => T | null) {
+        let result: T | null = null;
+
+        this.window()
+            .then((win) => {
+                result = cb(win);
+            })
+            .then(() => result);
+
+        return cy.wrap(null).then(() => result);
     }
 
     isVisible(selector: string) {
