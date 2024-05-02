@@ -1,6 +1,8 @@
 /* eslint-disable class-methods-use-this */
 import "@cypress/xpath";
 
+import * as Cypress from "cypress";
+
 export enum TimeoutType {
     zero = "zero",
     xxs = "xxs",
@@ -38,10 +40,6 @@ export interface BrowserSettings {
 type GetParams = Parameters<Cypress.Chainable["get"]>;
 type XpathParams = Parameters<Cypress.Chainable["xpath"]>;
 type FindParams = Parameters<Cypress.Chainable["find"]>;
-
-function isWindowObject<T>(param: T | Cypress.AUTWindow): param is Cypress.AUTWindow {
-    return typeof param === "object" && param && "document" in param;
-}
 
 class BaseBrowser {
     readonly settings: BrowserSettings;
@@ -184,14 +182,16 @@ export class Browser extends BaseBrowser {
         return this.get("body").click(x, y);
     }
 
-    execute<T>(cb: (win: Cypress.AUTWindow) => T | null): Cypress.Chainable<T | null> {
-        let result: T | null = null;
+    // TS definitions below (execute) might be incorrect.
+    // TODO: Check in real app and adjust type definitions or remove this comment
+    execute<T>(
+        cb: (win: Cypress.AUTWindow) => Bluebird.Promise<T | null>,
+    ): Cypress.Chainable<T | null>;
 
-        return this.window().then((win) => {
-            result = cb(win);
-            result = typeof result === "undefined" ? null : result;
-            return cy.wrap(result); // force "execute" to have Cypress.Chainable<T | null> as a return type
-        });
+    execute<T>(cb: (win: Cypress.AUTWindow) => T | null): Cypress.Chainable<T | null>;
+
+    execute<T = unknown>(cb: (win: Cypress.AUTWindow) => T) {
+        return this.window().then((win) => cb(win));
     }
 
     isVisible(selector: string) {
