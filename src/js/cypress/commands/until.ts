@@ -69,6 +69,20 @@ Cypress.Commands.add(
     },
 );
 
+Cypress.Commands.add(
+    "thenWithNull",
+    { prevSubject: true },
+    <S>(subject: S, callback: (subject: S) => PromiseLike<S> | Cypress.Chainable<S> | S) => {
+        return (
+            cy
+                .wrap(null)
+                .then(() => callback(subject))
+                // @ts-ignore
+                .then((result) => cy.wrap(result))
+        );
+    },
+);
+
 declare global {
     interface UntilProps<T = boolean> {
         it: () => Cypress.Chainable;
@@ -78,9 +92,13 @@ declare global {
     }
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
-        interface Chainable {
+        interface Chainable<Subject> {
             until<T>(prop: UntilProps<T>): void;
             getIframeBody(selector: string): Chainable;
+
+            thenWithNull<S>(cb: (currentSubject: Subject) => PromiseLike<S>): Chainable<S>;
+            thenWithNull<S>(cb: (currentSubject: Subject) => Chainable<S>): Chainable<S>;
+            thenWithNull<S>(cb: (currentSubject: Subject) => S): Chainable<S>;
         }
     }
 }
