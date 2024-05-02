@@ -37,6 +37,11 @@ export interface BrowserSettings {
     };
 }
 
+export interface RetryOptions {
+    timeout?: BrowserTimeout | number;
+    delay?: BrowserTimeout | number;
+}
+
 type GetParams = Parameters<Cypress.Chainable["get"]>;
 type XpathParams = Parameters<Cypress.Chainable["xpath"]>;
 type FindParams = Parameters<Cypress.Chainable["find"]>;
@@ -310,6 +315,45 @@ export class Browser extends BaseBrowser {
 
     getElementTextByXpath(selector: string) {
         return this.getElementByXpath(selector).invoke("text");
+    }
+
+    assertWithRetry(cb: () => Cypress.Chainable<boolean>, options?: RetryOptions) {
+        this.retry(() => cb(), true, options?.delay, options?.timeout);
+    }
+
+    assertText(selector: string, text: string) {
+        this.get(selector).should("have.text", text);
+    }
+
+    assertNumber(selector: string, value: number | string) {
+        this.get(selector).should((element) => {
+            assert.equal(
+                parseFloat(element.text()),
+                typeof value === "string" ? parseFloat(value) : value,
+            );
+        });
+    }
+
+    assertInputValue(selector: string, text: string) {
+        this.get(selector).should("have.value", text);
+    }
+
+    assertTextByRegExp(selector: string, regExp: RegExp) {
+        this.get(selector).should((element) => {
+            assert(regExp.test(element.text()));
+        });
+    }
+
+    assertVisible(selector: string) {
+        this.get(selector).should("be.visible");
+    }
+
+    assertNotExist(selector: string) {
+        this.get(selector).should("not.exist");
+    }
+
+    assertCssProperty(selector: string, property: string, value: string) {
+        this.get(selector).should("have.css", property, value);
     }
 }
 
