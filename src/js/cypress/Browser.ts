@@ -187,14 +187,6 @@ export class Browser extends BaseBrowser {
         return this.get("body").click(x, y);
     }
 
-    // TS definitions below (execute) might be incorrect.
-    // TODO: Check in real app and adjust type definitions or remove this comment
-    execute<T>(
-        cb: (win: Cypress.AUTWindow) => Bluebird.Promise<T | null>,
-    ): Cypress.Chainable<T | null>;
-
-    execute<T>(cb: (win: Cypress.AUTWindow) => T): Cypress.Chainable<T>;
-
     execute<T = unknown>(cb: (win: Cypress.AUTWindow) => T) {
         return this.window().thenWithNull((win) => cb(win));
     }
