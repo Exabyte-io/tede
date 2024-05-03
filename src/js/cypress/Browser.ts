@@ -187,7 +187,9 @@ export class Browser extends BaseBrowser {
         return this.get("body").click(x, y);
     }
 
-    execute<T = unknown>(cb: (win: Cypress.AUTWindow) => T) {
+    execute<T = unknown>(
+        cb: ((win: Cypress.AUTWindow) => T) | ((win: Cypress.AUTWindow) => Bluebird.Promise<T>),
+    ) {
         return this.window().thenWithNull((win) => cb(win));
     }
 
