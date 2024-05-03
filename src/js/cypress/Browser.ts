@@ -363,6 +363,10 @@ export class Browser extends BaseBrowser {
     assertCssProperty(selector: string, property: string, value: string) {
         this.get(selector).should("have.css", property, value);
     }
+
+    assertChecked(selector: string, checked = true) {
+        this.get(selector).should(checked ? "be.checked" : "not.be.checked");
+    }
 }
 
 export class IframeBrowser extends Browser {
