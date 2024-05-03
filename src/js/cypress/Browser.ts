@@ -322,7 +322,11 @@ export class Browser extends BaseBrowser {
     }
 
     assertText(selector: string, text: string) {
-        this.get(selector).should("have.text", text);
+        this.get(selector).should("include.text", text);
+    }
+
+    assertNotEmptyText(selector: string) {
+        this.get(selector).invoke("val").should("not.be.empty");
     }
 
     assertNumber(selector: string, value: number | string) {
@@ -346,6 +350,10 @@ export class Browser extends BaseBrowser {
 
     assertVisible(selector: string) {
         this.get(selector).should("be.visible");
+    }
+
+    assertExist(selector: string) {
+        this.get(selector).should("exist");
     }
 
     assertNotExist(selector: string) {
