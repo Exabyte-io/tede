@@ -297,24 +297,18 @@ export class Browser extends BaseBrowser {
         return this.xpath(selector).should("be.visible");
     }
 
-    clickFirst(selector: string, options = {}) {
-        return this.get(selector).first().click(options);
-    }
-
-    getElementByXpath(selector: string) {
-        return this.xpath(selector);
-    }
-
-    getElementTextByXpath(selector: string) {
-        return this.getElementByXpath(selector).invoke("text");
-    }
+    // ======= Assertions ========
 
     assertWithRetry(cb: () => Cypress.Chainable<boolean>, options?: RetryOptions) {
         this.retry(() => cb(), true, options?.delay, options?.timeout);
     }
 
-    assertTextWithRetry(selector: string, text: string) {
-        this.get(selector).should("include.text", text);
+    assertTextWithRetry(selector: string, textOrCallback: string | ((text: string) => void)) {
+        if (typeof textOrCallback === "string") {
+            this.get(selector).should("include.text", textOrCallback);
+        } else {
+            this.getElementText(selector).should(textOrCallback);
+        }
     }
 
     assertNotEmptyTextWithRetry(selector: string) {
@@ -359,6 +353,10 @@ export class Browser extends BaseBrowser {
     assertCheckedWithRetry(selector: string, checked = true) {
         this.get(selector).should(checked ? "be.checked" : "not.be.checked");
     }
+
+    // ======= End assertions ========
+
+    // ======= Getters ========
 }
 
 export class IframeBrowser extends Browser {

@@ -83,14 +83,14 @@ Browser actions:
 
 Browser assertions:
 
-- `assertText`
-- `assertInputValue`
-- `assertChecked`
-- `assertSelected`
-- `assertCSS`
-- `assertVisible`
-- `assertHidden`
-- `assertMissing`
+- `assertTextWithRetry`
+- `assertInputValueWithRetry`
+- `assertCheckedWithRetry`
+- `assertSelectedWithRetry`
+- `assertCSSWithRetry`
+- `assertVisibleWithRetry`
+- `assertHiddenWithRetry`
+- `assertMissingWithRetry`
 
 Browser getters:
 
