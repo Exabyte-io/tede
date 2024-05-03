@@ -313,15 +313,15 @@ export class Browser extends BaseBrowser {
         this.retry(() => cb(), true, options?.delay, options?.timeout);
     }
 
-    assertText(selector: string, text: string) {
+    assertTextWithRetry(selector: string, text: string) {
         this.get(selector).should("include.text", text);
     }
 
-    assertNotEmptyText(selector: string) {
+    assertNotEmptyTextWithRetry(selector: string) {
         this.get(selector).invoke("val").should("not.be.empty");
     }
 
-    assertNumber(selector: string, value: number | string) {
+    assertNumberWithRetry(selector: string, value: number | string) {
         this.get(selector).should((element) => {
             assert.equal(
                 parseFloat(element.text()),
@@ -330,29 +330,29 @@ export class Browser extends BaseBrowser {
         });
     }
 
-    assertInputValue(selector: string, text: string) {
+    assertInputValueWithRetry(selector: string, text: string) {
         this.get(selector).should("have.value", text);
     }
 
-    assertTextByRegExp(selector: string, regExp: RegExp) {
+    assertTextByRegExpWithRetry(selector: string, regExp: RegExp) {
         this.get(selector).should((element) => {
             assert(regExp.test(element.text()));
         });
     }
 
-    assertVisible(selector: string) {
+    assertVisibleWithRetry(selector: string) {
         this.get(selector).should("be.visible");
     }
 
-    assertExist(selector: string) {
+    assertExistWithRetry(selector: string) {
         this.get(selector).should("exist");
     }
 
-    assertNotExist(selector: string) {
+    assertNotExistWithRetry(selector: string) {
         this.get(selector).should("not.exist");
     }
 
-    assertCssProperty(selector: string, property: string, value: string) {
+    assertCssPropertyWithRetry(selector: string, property: string, value: string) {
         this.get(selector).should("have.css", property, value);
     }
 
