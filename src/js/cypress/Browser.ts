@@ -356,7 +356,7 @@ export class Browser extends BaseBrowser {
         this.get(selector).should("have.css", property, value);
     }
 
-    assertChecked(selector: string, checked = true) {
+    assertCheckedWithRetry(selector: string, checked = true) {
         this.get(selector).should(checked ? "be.checked" : "not.be.checked");
     }
 }
