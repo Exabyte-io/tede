@@ -37,6 +37,11 @@ export interface BrowserSettings {
     };
 }
 
+export interface RetryOptions {
+    timeout?: BrowserTimeout | number;
+    delay?: BrowserTimeout | number;
+}
+
 type GetParams = Parameters<Cypress.Chainable["get"]>;
 type XpathParams = Parameters<Cypress.Chainable["xpath"]>;
 type FindParams = Parameters<Cypress.Chainable["find"]>;
@@ -182,8 +187,13 @@ export class Browser extends BaseBrowser {
         return this.get("body").click(x, y);
     }
 
-    execute<T = unknown>(cb: (win: Cypress.AUTWindow) => T) {
-        return this.window().then((win) => cb(win));
+    execute<T = unknown>(
+        cb:
+            | ((win: Cypress.AUTWindow) => T)
+            | ((win: Cypress.AUTWindow) => Bluebird.Promise<T>)
+            | ((win: Cypress.AUTWindow) => Cypress.Chainable<T>),
+    ) {
+        return this.window().thenWithNull<T>(cb);
     }
 
     isVisible(selector: string) {
@@ -253,28 +263,33 @@ export class Browser extends BaseBrowser {
     retry(
         cb: () => Cypress.Chainable<boolean>,
         become?: boolean,
-        delay?: BrowserTimeout,
-        timeout?: BrowserTimeout,
+        delay?: BrowserTimeout | number,
+        timeout?: BrowserTimeout | number,
     ): void;
 
     retry<T>(
         cb: () => Cypress.Chainable<T>,
         become: T,
-        delay?: BrowserTimeout,
-        timeout?: BrowserTimeout,
+        delay?: BrowserTimeout | number,
+        timeout?: BrowserTimeout | number,
     ): void;
 
     retry<T = boolean>(
         cb: () => Cypress.Chainable<T>,
         become?: T,
-        delay: BrowserTimeout = "zero",
-        timeout: BrowserTimeout = TimeoutType.md,
+        delay: BrowserTimeout | number = "zero",
+        timeout: BrowserTimeout | number = TimeoutType.md,
     ) {
+        const delayMilliseconds =
+            typeof delay === "number" ? delay : defaultSettings.timeouts[delay];
+        const timeoutMilliseconds =
+            typeof timeout === "number" ? timeout : defaultSettings.timeouts[timeout];
+
         cy.until({
             it: cb,
             become,
-            delay: defaultSettings.timeouts[delay],
-            timeout: defaultSettings.timeouts[timeout],
+            delay: delayMilliseconds,
+            timeout: timeoutMilliseconds,
         });
     }
 
@@ -287,17 +302,66 @@ export class Browser extends BaseBrowser {
         return this.xpath(selector).should("be.visible");
     }
 
-    clickFirst(selector: string, options = {}) {
-        return this.get(selector).first().click(options);
+    // ======= Assertions ========
+
+    assertWithRetry(cb: () => Cypress.Chainable<boolean>, options?: RetryOptions) {
+        this.retry(() => cb(), true, options?.delay, options?.timeout);
     }
 
-    getElementByXpath(selector: string) {
-        return this.xpath(selector);
+    assertTextWithRetry(selector: string, textOrCallback: string | ((text: string) => void)) {
+        if (typeof textOrCallback === "string") {
+            this.get(selector).should("include.text", textOrCallback);
+        } else {
+            this.getElementText(selector).should(textOrCallback);
+        }
     }
 
-    getElementTextByXpath(selector: string) {
-        return this.getElementByXpath(selector).invoke("text");
+    assertNotEmptyTextWithRetry(selector: string) {
+        this.get(selector).invoke("val").should("not.be.empty");
     }
+
+    assertNumberWithRetry(selector: string, value: number | string) {
+        this.get(selector).should((element) => {
+            assert.equal(
+                parseFloat(element.text()),
+                typeof value === "string" ? parseFloat(value) : value,
+            );
+        });
+    }
+
+    assertInputValueWithRetry(selector: string, text: string) {
+        this.get(selector).should("have.value", text);
+    }
+
+    assertTextByRegExpWithRetry(selector: string, regExp: RegExp) {
+        this.get(selector).should((element) => {
+            assert(regExp.test(element.text()));
+        });
+    }
+
+    assertVisibleWithRetry(selector: string) {
+        this.get(selector).should("be.visible");
+    }
+
+    assertExistWithRetry(selector: string) {
+        this.get(selector).should("exist");
+    }
+
+    assertNotExistWithRetry(selector: string) {
+        this.get(selector).should("not.exist");
+    }
+
+    assertCssPropertyWithRetry(selector: string, property: string, value: string) {
+        this.get(selector).should("have.css", property, value);
+    }
+
+    assertCheckedWithRetry(selector: string, checked = true) {
+        this.get(selector).should(checked ? "be.checked" : "not.be.checked");
+    }
+
+    // ======= End assertions ========
+
+    // ======= Getters ========
 }
 
 export class IframeBrowser extends Browser {

@@ -68,10 +68,10 @@ function evalExpression(str: string) {
 /**
  * Parses passed string and returns evaluated value.
  */
-export function parseValue(str: string) {
+export function parseValue<T = string>(str: string): T {
     // eslint-disable-next-line no-shadow, no-use-before-define, @typescript-eslint/no-use-before-define
     const config = REGEXES.find((config) => str.match(config.regex));
-    return config ? config.func(str, config.regex, context) : str;
+    return (config ? config.func(str, config.regex, context) : str) as T;
 }
 
 /**
