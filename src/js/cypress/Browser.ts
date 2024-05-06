@@ -188,9 +188,12 @@ export class Browser extends BaseBrowser {
     }
 
     execute<T = unknown>(
-        cb: ((win: Cypress.AUTWindow) => T) | ((win: Cypress.AUTWindow) => Bluebird.Promise<T>),
+        cb:
+            | ((win: Cypress.AUTWindow) => T)
+            | ((win: Cypress.AUTWindow) => Bluebird.Promise<T>)
+            | ((win: Cypress.AUTWindow) => Cypress.Chainable<T>),
     ) {
-        return this.window().thenWithNull((win) => cb(win));
+        return this.window().thenWithNull<T>(cb);
     }
 
     isVisible(selector: string) {

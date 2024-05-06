@@ -96,9 +96,9 @@ declare global {
             until<T>(prop: UntilProps<T>): void;
             getIframeBody(selector: string): Chainable;
 
-            thenWithNull<S>(cb: (currentSubject: Subject) => Bluebird.Promise<S>): Chainable<S>;
-            thenWithNull<S>(cb: (currentSubject: Subject) => Chainable<S>): Chainable<S>;
-            thenWithNull<S>(cb: (currentSubject: Subject) => S): Chainable<S>;
+            thenWithNull<S>(
+                cb: (currentSubject: Subject) => Bluebird.Promise<S> | Chainable<S> | S,
+            ): Chainable<S>;
         }
     }
 }
