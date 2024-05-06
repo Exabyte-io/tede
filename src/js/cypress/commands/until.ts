@@ -71,14 +71,32 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
     "thenWithNull",
+    // @ts-ignore
     { prevSubject: true },
-    <S>(subject: S, callback: (subject: S) => PromiseLike<S> | Cypress.Chainable<S> | S) => {
+    <S>(
+        prevSubject: S,
+        callback: (subject: S) => Bluebird.Promise<S> | Cypress.Chainable<S> | S,
+    ) => {
         return (
             cy
                 .wrap(null)
-                .then(() => callback(subject))
+                .then(() => {
+                    const result = callback(prevSubject);
+
+                    if (typeof result === "undefined") {
+                        return cy.wrap(result);
+                    }
+
+                    if (result === null) {
+                        return cy.wrap(result);
+                    }
+
+                    return result;
+                })
                 // @ts-ignore
-                .then((result) => cy.wrap(result))
+                .then((newResult) => {
+                    return cy.wrap(newResult);
+                })
         );
     },
 );
@@ -96,6 +114,28 @@ declare global {
             until<T>(prop: UntilProps<T>): void;
             getIframeBody(selector: string): Chainable;
 
+            /**
+             * Same as then, except that undefined and null become the new subject as well
+             * @see what default then() yields: https://docs.cypress.io/api/commands/then#Yields
+             * @example
+             * cy.wrap("test").then((subject1: "test") => {
+             *      return null;
+             * }).then((subject2: "test") => {
+             *      return undefined;
+             * }).thenWithNull((subject3: "test") => {
+             *      return null;
+             * }).thenWithNull((subject4: null) => {
+             *      return undefined;
+             * }).then(subject5: undefined) => {
+             *      return subject5;
+             * });
+             *
+             * subject1 - "test";
+             * subject2 - "test" (null was ignored);
+             * subject3 - "test" (undefined was ignored);
+             * subject4 - null (thenWithNull keeps null);
+             * subject5 - null (thenWithNull keeps undefined);
+             */
             thenWithNull<S>(
                 cb: (currentSubject: Subject) => Bluebird.Promise<S> | Chainable<S> | S,
             ): Chainable<S>;
