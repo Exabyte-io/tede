@@ -59,55 +59,32 @@ Test data access object. It is similar to DAO for test purposes <https://en.wiki
 Intermediate level between widgets and test framework (cypress in this case).
 It is available as Cypress window property (`window.browser`) for step definitions and as `this.browser` for any widget and tao.
 Any cypress functions or commands should be used only through the browser object.
-There are 4 types of methods in the browser object:
 
-1. actions
-2. assertions
-3. getters
-4. utils
+### Widget object
 
-Browser actions:
+Extends browser with high-level business-related logic. Usually represents some particular widget in the application.
+For example, you could have `LeftSideMenuWidget` with method `clickOnMenuItem(menuItemName: string)` which internally uses `browser.clickOnText(selector: string, text: string)`;
 
-- `click`
-- `clickOnText`
-- `check`
-- `uncheck`
-- `select`
-- `setInputValue`
-- `uploadFileFromFilePath`
-- `waitForVisible`
-- `waitForDisappear`
-- `waitForHide`
-- `waitForExist`
-- `waitForValue`
+## Browser / Widget / TAO methods
 
-Browser assertions:
+4 types of methods should exist in Browser / Widget / TAO:
 
-- `assertTextWithRetry`
-- `assertInputValueWithRetry`
-- `assertCheckedWithRetry`
-- `assertSelectedWithRetry`
-- `assertCSSWithRetry`
-- `assertVisibleWithRetry`
-- `assertHiddenWithRetry`
-- `assertMissingWithRetry`
-
-Browser getters:
-
-- `getInputValue`
-- `getElementText`
-- `getAttribute`
-- `getCssProperty`
-- `getIsVisible`
-- `getIsSelected`
-- `getIsChecked`
-- `getIsExisting`
-
-Browser util methods:
-
-- `retry`
-- `dispatchEvent`
-- `execute`
+1. **actions** - interactions with the page that can be done by the user
+   - `click`, `type`, `select`, `refresh` for the browser
+   - `clickOnTitle`, `typeEmail`, `selectGender` for the widget
+   - `createUser`, `setServiceLevel`, `createJob` for TAO
+2. **assertions with retry** - application state checks. For example, `assertTextWithRetry` will check if the text inside html component is equal to some reference value (cypress will retry this action a couple of times for 4 seconds by default until succeeds). For TAO actions we need to add the retry manually.
+   - `assertTextWithRetry`, `assertInputValueWithRetry`, `assertSelectValue` for browser
+   - `assertTitleTextWithRetry`, `assertEmailInputValueWithRetry`, `assertGenderSelectValue` for widget
+   - `assertUserExistWithRetry`, `assertServiceLevelWithRetry`, `assertWorkflowsCreatedWithRetry` for TAO
+3. **getters** - methods that return any data required for further test logic. The only async methods across all tests.
+   - `getText`, `getInputValue`, `getCssClass`, `getIsSelected` for browser
+   - `getTitleText`, `getInputEmailText`, `getIsExplorerItemVisible` for widget
+   - `getApplicationSettings`, `getUserSettings`, `getServiceLevel` for TAO
+4. **utils** - other system methods. Exist only in the browser object:
+   - `retry`,
+   - `dispatchEvent`,
+   - `execute`
 
 Getters are the only async methods in the browser object. They should be called only inside Widgets/TAO.
 Do not expose the async nature of these methods to step definitions (there should be no `then` inside step definitions).
@@ -118,7 +95,7 @@ Do not expose the async nature of these methods to step definitions (there shoul
 
 ```js
 // Wrong:
-window.browser.retry(() => {
+widget.browser.retry(() => {
   return widget.browser.getElementText(selector).then((elementText) => {
     return elementText === "expected text";
   })
@@ -128,21 +105,34 @@ window.browser.retry(() => {
 widget.browser.assertText(selector, "expected text");
 ```
 
-- Inside step definitions using TAO if you still need to use `browser.retry` somewhere, it has to be isolated in a separate step definition. Please do not mix it with other actions:
+- Don't use `browser.retry` inside step definitions. It should be encapsulated with methods `assertAndRetry`:
 
 ```js
+// wrong
 window.browser.retry(() => {
-  return tao.checkSomethingOnTheServerSide().then((isReady) => {
+  return tao.isSomethingOnTheServerSide().then((isReady) => {
     return Boolean(isReady);
   })
 });
 
-// Move code below to the next step definition:
-widget.doSomeOtherThings();
-widget.doSomeAnotherThings();
+// correct:
+
+/**
+ * somewhere in TAO:
+ */
+assertSomethingOnTheServerSideIsReadyWithRetry() {
+    this.browser.retry(() => {
+       return this.isSomethingOnTheServerSide().then((isReady) => {
+         return Boolean(isReady);
+       });
+    })
+}
+
+// in step definition
+tao.assertSomethingOnTheServerSideIsReadyWithRetry();
 ```
 
-- In steps try reducing `then` usage and move such code inside a widget or tao:
+- Do not use `then` in step definitions. Move such code inside a widget or tao:
 
 ```js
 // Not good, this has to be inside widget method
