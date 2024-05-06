@@ -64,7 +64,7 @@ Four types of methods should exist in the Browser, and consequently through the 
 Due to the nature of the Cypress engine, the following conventions apply:
 
 1. **Actions** and **Assertions** should not be async. They should return a value or a promise. The Cypress engine will handle the retries for the UI actions. Cypress will retry an action a couple of times for 4 seconds by default until it succeeds. For TAO actions we need to add the `retry` (see item 4 below) manually.
-2. **Getters** are the only async methods in the browser object. They should be called only inside Widgets/TAO. Do not expose the async nature of these methods to step definitions (there should be no `then` inside step definitions).
+2. **Getters** are the only async methods in the browser object. These should return "Cypress.Chainable" to be chained with `.then()` subsequently. The getters should be called only inside Widgets/TAO. Do not expose the async nature of these methods to step definitions (there should be no `then` inside step definitions). See section 3 below for more details.
 3. **Utils** execute is running code inside the browser context. Here something like <https://github.com/xolvio/meteor-backdoor> could be utilized to run code on the server side to prepare the test environment data, for example.
 
 ## 3. Specific Suggestions.
