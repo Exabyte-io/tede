@@ -180,7 +180,7 @@ export class Browser extends BaseBrowser {
     }
 
     clickOnText(text: string, selector = "body") {
-        return this.get(selector).contains(text).click();
+        return this.get(selector).contains(text, { matchCase: false }).click();
     }
 
     clickOutside(x = 0, y = 0) {
