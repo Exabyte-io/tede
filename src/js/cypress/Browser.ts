@@ -1,8 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import "@cypress/xpath";
 
-import * as Cypress from "cypress";
-
 export enum TimeoutType {
     zero = "zero",
     xxs = "xxs",
@@ -95,24 +93,24 @@ class BaseBrowser {
 }
 
 export class Browser extends BaseBrowser {
-    waitForVisible(selector: string, timeout: BrowserTimeout) {
-        return this.getWithTimeout(selector, timeout).should("be.visible");
+    waitForVisible(selector: string, timeout?: BrowserTimeout) {
+        this.getWithTimeout(selector, timeout).should("be.visible");
     }
 
-    waitForDisappear(selector: string, timeout: BrowserTimeout) {
-        return this.getWithTimeout(selector, timeout).should("not.exist");
+    waitForDisappear(selector: string, timeout?: BrowserTimeout) {
+        this.getWithTimeout(selector, timeout).should("not.exist");
     }
 
-    waitForHide(selector: string, timeout: BrowserTimeout) {
-        return this.getWithTimeout(selector, timeout).should("be.hidden");
+    waitForHide(selector: string, timeout?: BrowserTimeout) {
+        this.getWithTimeout(selector, timeout).should("be.hidden");
     }
 
-    waitForExist(selector: string, timeout: BrowserTimeout) {
-        return this.getWithTimeout(selector, timeout).should("exist");
+    waitForExist(selector: string, timeout?: BrowserTimeout) {
+        this.getWithTimeout(selector, timeout).should("exist");
     }
 
-    waitForValue(selector: string, timeout: BrowserTimeout) {
-        return this.getWithTimeout(selector, timeout).should("exist");
+    waitForValue(selector: string, timeout?: BrowserTimeout) {
+        this.getWithTimeout(selector, timeout).should("exist");
     }
 
     /**

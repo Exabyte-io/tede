@@ -14,15 +14,15 @@ export default class Widget {
     }
 
     waitForVisible(timeout?: BrowserTimeout) {
-        return this.browser.waitForVisible(this.selector, timeout);
+        this.browser.waitForVisible(this.selector, timeout);
     }
 
     waitForDisappear(timeout?: BrowserTimeout) {
-        return this.browser.waitForDisappear(this.selector, timeout);
+        this.browser.waitForDisappear(this.selector, timeout);
     }
 
     waitForLoaderToDisappear() {
-        return this.browser.waitForDisappear(this.getWrappedSelector("div.spinner"));
+        this.browser.waitForDisappear(this.getWrappedSelector("div.spinner"));
     }
 
     getWrappedSelector(selector: string, separator = " ") {
