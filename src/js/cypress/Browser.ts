@@ -357,6 +357,10 @@ export class Browser extends BaseBrowser {
         this.get(selector).should(checked ? "be.checked" : "not.be.checked");
     }
 
+    assertLengthWithRetry(selector: string, length: number) {
+        this.get(selector).should("have.length", length);
+    }
+
     // ======= End assertions ========
 
     // ======= Getters ========
