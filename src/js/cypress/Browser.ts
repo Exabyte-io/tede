@@ -1,8 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import "@cypress/xpath";
 
-import * as Cypress from "cypress";
-
 export enum TimeoutType {
     zero = "zero",
     xxs = "xxs",
@@ -95,24 +93,24 @@ class BaseBrowser {
 }
 
 export class Browser extends BaseBrowser {
-    waitForVisible(selector: string, timeout: BrowserTimeout) {
-        return this.getWithTimeout(selector, timeout).should("be.visible");
+    waitForVisible(selector: string, timeout?: BrowserTimeout) {
+        this.getWithTimeout(selector, timeout).should("be.visible");
     }
 
-    waitForDisappear(selector: string, timeout: BrowserTimeout) {
-        return this.getWithTimeout(selector, timeout).should("not.exist");
+    waitForDisappear(selector: string, timeout?: BrowserTimeout) {
+        this.getWithTimeout(selector, timeout).should("not.exist");
     }
 
-    waitForHide(selector: string, timeout: BrowserTimeout) {
-        return this.getWithTimeout(selector, timeout).should("be.hidden");
+    waitForHide(selector: string, timeout?: BrowserTimeout) {
+        this.getWithTimeout(selector, timeout).should("be.hidden");
     }
 
-    waitForExist(selector: string, timeout: BrowserTimeout) {
-        return this.getWithTimeout(selector, timeout).should("exist");
+    waitForExist(selector: string, timeout?: BrowserTimeout) {
+        this.getWithTimeout(selector, timeout).should("exist");
     }
 
-    waitForValue(selector: string, timeout: BrowserTimeout) {
-        return this.getWithTimeout(selector, timeout).should("exist");
+    waitForValue(selector: string, timeout?: BrowserTimeout) {
+        this.getWithTimeout(selector, timeout).should("exist");
     }
 
     /**
@@ -180,7 +178,7 @@ export class Browser extends BaseBrowser {
     }
 
     clickOnText(text: string, selector = "body") {
-        return this.get(selector).contains(text).click();
+        return this.get(selector).contains(text, { matchCase: false }).click();
     }
 
     clickOutside(x = 0, y = 0) {
@@ -357,6 +355,10 @@ export class Browser extends BaseBrowser {
 
     assertCheckedWithRetry(selector: string, checked = true) {
         this.get(selector).should(checked ? "be.checked" : "not.be.checked");
+    }
+
+    assertLengthWithRetry(selector: string, length: number) {
+        this.get(selector).should("have.length", length);
     }
 
     // ======= End assertions ========
