@@ -127,7 +127,7 @@ export class Browser extends BaseBrowser {
         const input = this.get(selector);
 
         if (clear) {
-            return input.clear().type(value.toString(), options);
+            input.focus().type("{selectall}").type(value.toString(), options);
         }
 
         return input.type(value.toString(), options);
