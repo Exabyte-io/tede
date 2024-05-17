@@ -342,9 +342,6 @@ export class Browser extends BaseBrowser {
         });
     }
 
-    /**
-     * Strict comparison: input.value === text
-     */
     assertInputValueWithRetry(
         selector: string,
         text: string,
