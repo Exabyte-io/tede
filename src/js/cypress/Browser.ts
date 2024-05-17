@@ -342,8 +342,15 @@ export class Browser extends BaseBrowser {
         });
     }
 
-    assertInputValueWithRetry(selector: string, text: string) {
-        this.get(selector).should("have.value", text);
+    /**
+     * Strict comparison: input.value === text
+     */
+    assertInputValueWithRetry(
+        selector: string,
+        text: string,
+        comparison: "have" | "include" = "have",
+    ) {
+        this.get(selector).should(`${comparison}.value`, text);
     }
 
     assertTextByRegExpWithRetry(selector: string, regExp: RegExp) {
