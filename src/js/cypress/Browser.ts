@@ -210,7 +210,7 @@ export class Browser extends BaseBrowser {
     }
 
     isVisible(selector: string) {
-        return this.get(selector).then(($el): boolean => $el.is(":visible"));
+        return this.get(selector).then(($el) => Cypress.dom.isVisible($el));
     }
 
     isSelected(selector: string) {
