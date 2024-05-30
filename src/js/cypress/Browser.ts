@@ -133,6 +133,21 @@ export class Browser extends BaseBrowser {
         return input.type(value.toString(), options);
     }
 
+    setInputNumberValue(
+        selector: string,
+        value: string | number,
+        clear = true,
+        options: Partial<Cypress.TypeOptions> = {},
+    ) {
+        const input = this.get(selector);
+
+        if (clear) {
+            return input.focus().type("{selectall}").type(value.toString(), options);
+        }
+
+        return input.type(value.toString(), options);
+    }
+
     setInputValueByXpath(
         selector: string,
         value: string | number,
@@ -195,7 +210,7 @@ export class Browser extends BaseBrowser {
     }
 
     isVisible(selector: string) {
-        return this.get(selector).then(($el): boolean => $el.is(":visible"));
+        return this.get(selector).then(($el) => Cypress.dom.isVisible($el));
     }
 
     isSelected(selector: string) {
@@ -300,6 +315,22 @@ export class Browser extends BaseBrowser {
         return this.xpath(selector).should("be.visible");
     }
 
+    wait(timeout: number) {
+        return cy.wait(timeout);
+    }
+
+    back() {
+        cy.go("back");
+    }
+
+    reload(force = false) {
+        cy.reload(force);
+    }
+
+    replaceElementAttribute(selector: string, attribute: string, value: string) {
+        this.get(selector).invoke("attr", attribute, value);
+    }
+
     // ======= Assertions ========
 
     assertWithRetry(cb: () => Cypress.Chainable<boolean>, options?: RetryOptions) {
@@ -327,8 +358,12 @@ export class Browser extends BaseBrowser {
         });
     }
 
-    assertInputValueWithRetry(selector: string, text: string) {
-        this.get(selector).should("have.value", text);
+    assertInputValueWithRetry(
+        selector: string,
+        text: string,
+        comparison: "have" | "include" = "have",
+    ) {
+        this.get(selector).should(`${comparison}.value`, text);
     }
 
     assertTextByRegExpWithRetry(selector: string, regExp: RegExp) {
@@ -359,6 +394,29 @@ export class Browser extends BaseBrowser {
 
     assertLengthWithRetry(selector: string, length: number) {
         this.get(selector).should("have.length", length);
+    }
+
+    assertElementHasClassWithRetry(selector: string, className: string) {
+        this.get(selector).should("have.class", className);
+    }
+
+    assertInputValueNotEmptyWithRetry(selector: string) {
+        this.getInputValue(selector).should("not.be.empty");
+    }
+
+    assertAttributeIncludeValueWithRetry(selector: string, attribute: string, value: string) {
+        this.get(selector).invoke("attr", attribute).should("contain", value);
+    }
+
+    assertAttributeMatchWithRetry(
+        selector: string,
+        attribute: string,
+        regexp: RegExp,
+        timeout: BrowserTimeout = "md",
+    ) {
+        this.getWithTimeout(selector, timeout)
+            .invoke({ timeout: this.getTimeoutTime(timeout) }, "attr", attribute)
+            .should("match", regexp);
     }
 
     // ======= End assertions ========
