@@ -290,13 +290,20 @@ export class Browser extends BaseBrowser {
     retry<T = boolean>(
         cb: () => Cypress.Chainable<T>,
         become?: T,
-        delay: BrowserTimeout | number = "zero",
+        delay: BrowserTimeout | number = TimeoutType.zero,
         timeout: BrowserTimeout | number = TimeoutType.md,
     ) {
-        const delayMilliseconds =
-            typeof delay === "number" ? delay : defaultSettings.timeouts[delay];
         const timeoutMilliseconds =
             typeof timeout === "number" ? timeout : defaultSettings.timeouts[timeout];
+        let delayMilliseconds = typeof delay === "number" ? delay : defaultSettings.timeouts[delay];
+
+        const DEFAULT_RETRY_COUNT = 30;
+
+        // Reduce amount of logs for long actions (30 seconds or more):
+        // retry 30 times by default, unless "delay" passed directly
+        if (timeoutMilliseconds >= DEFAULT_RETRY_COUNT * 1000 && delayMilliseconds === 0) {
+            delayMilliseconds = timeoutMilliseconds / DEFAULT_RETRY_COUNT;
+        }
 
         cy.until({
             it: cb,
@@ -325,6 +332,10 @@ export class Browser extends BaseBrowser {
 
     reload(force = false) {
         cy.reload(force);
+    }
+
+    getUrl() {
+        return cy.url();
     }
 
     replaceElementAttribute(selector: string, attribute: string, value: string) {
@@ -417,6 +428,15 @@ export class Browser extends BaseBrowser {
         this.getWithTimeout(selector, timeout)
             .invoke({ timeout: this.getTimeoutTime(timeout) }, "attr", attribute)
             .should("match", regexp);
+    }
+
+    assertDisabledWithRetry(selector: string, disabled = true) {
+        this.get(selector).should(disabled ? "be.disabled" : "not.be.disabled");
+    }
+
+    assertFileDownloadedWithRetry(fileName: string) {
+        const downloadsFolder = Cypress.config("downloadsFolder");
+        cy.readFile(`${downloadsFolder}/${fileName}`).should("exist");
     }
 
     // ======= End assertions ========
