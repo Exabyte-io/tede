@@ -456,7 +456,14 @@ export class IframeBrowser extends Browser {
     }
 
     get(selector: GetParams[0], options?: GetParams[1]) {
-        return this.getIframeBody().find(selector, options);
+        /**
+         * Chaining after find() may lead to the error "cy...() failed because the page updated" in some cases
+         * @see https://docs.cypress.io/guides/references/error-messages#cy-failed-because-the-page-updated
+         * hence .as("iframe_element") and cy.get("@iframe_element")
+         */
+        this.getIframeBody().find(selector, options).as("iframe_element");
+
+        return cy.get("@iframe_element");
     }
 
     xpath(selector: XpathParams[0], params?: XpathParams[1]) {
