@@ -471,10 +471,16 @@ export class IframeBrowser extends Browser {
     }
 
     getIframeBody() {
-        return cy
-            .get(this.selector, { timeout: this.timeout })
+        /**
+         * Chaining after its() may lead to the error "cy...() failed because the page updated" in some cases
+         * @see https://docs.cypress.io/guides/references/error-messages#cy-failed-because-the-page-updated
+         * hence .as("iframe_element") and cy.get("@iframe_element")
+         */
+        cy.get(this.selector, { timeout: this.timeout })
             .its("0.contentDocument.body", {})
             .should("not.be.empty")
-            .then(cy.wrap);
+            .as("iframe_body");
+
+        return cy.get("@iframe_body");
     }
 }
