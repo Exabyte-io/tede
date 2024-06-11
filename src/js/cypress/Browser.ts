@@ -348,9 +348,16 @@ export class Browser extends BaseBrowser {
         this.retry(() => cb(), true, options?.delay, options?.timeout);
     }
 
-    assertTextWithRetry(selector: string, textOrCallback: string | ((text: string) => void)) {
+    assertTextWithRetry(
+        selector: string,
+        textOrCallback: string | ((text: string) => void),
+        include = true,
+    ) {
         if (typeof textOrCallback === "string") {
-            this.get(selector).should("include.text", textOrCallback);
+            this.get(selector).should(
+                include ? "include.text" : "not.include.text",
+                textOrCallback,
+            );
         } else {
             this.getElementText(selector).should(textOrCallback);
         }
