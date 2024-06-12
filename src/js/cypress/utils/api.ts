@@ -15,7 +15,7 @@ export interface Headers {
 
 export type Body = object | undefined;
 
-export default class RestApi {
+export default class RestAPI {
     private getHeaders(config: Request): Headers {
         return Object.keys(config)
             .filter((key) => key.match(/header\.\d\.key/))

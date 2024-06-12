@@ -452,42 +452,33 @@ export class Browser extends BaseBrowser {
 }
 
 export class IframeBrowser extends Browser {
-    selector: string;
+    private selector: string;
 
-    timeout: number;
+    private timeout: number;
+
+    private iframeElement: Cypress.Chainable<JQuery<HTMLElement>>;
+
+    private bodyElement: Cypress.Chainable<JQuery<HTMLElement>>;
 
     constructor(selector: string, settings: BrowserSettings, timeoutKey: BrowserTimeout) {
         super(settings);
         this.selector = selector;
         this.timeout = this.getTimeoutTime(timeoutKey);
+        this.iframeElement = cy.get(this.selector, { timeout: this.timeout });
+        this.bodyElement = this.iframeElement
+            .its("0.contentDocument.body", {})
+            .should("not.be.empty");
     }
 
     get(selector: GetParams[0], options?: GetParams[1]) {
-        /**
-         * Chaining after find() may lead to the error "cy...() failed because the page updated" in some cases
-         * @see https://docs.cypress.io/guides/references/error-messages#cy-failed-because-the-page-updated
-         * hence .as("iframe_element") and cy.get("@iframe_element")
-         */
-        this.getIframeBody().find(selector, options).as("iframe_element");
-
-        return cy.get("@iframe_element");
+        return this.bodyElement.find(selector, options);
     }
 
     xpath(selector: XpathParams[0], params?: XpathParams[1]) {
-        return this.getIframeBody().xpath(selector, params);
+        return this.bodyElement.xpath(selector, params);
     }
 
-    getIframeBody() {
-        /**
-         * Chaining after its() may lead to the error "cy...() failed because the page updated" in some cases
-         * @see https://docs.cypress.io/guides/references/error-messages#cy-failed-because-the-page-updated
-         * hence .as("iframe_element") and cy.get("@iframe_element")
-         */
-        cy.get(this.selector, { timeout: this.timeout })
-            .its("0.contentDocument.body", {})
-            .should("not.be.empty")
-            .as("iframe_body");
-
-        return cy.get("@iframe_body");
+    assertIframeNotExistWithRetry() {
+        this.iframeElement.should("not.exist");
     }
 }
