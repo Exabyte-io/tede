@@ -465,7 +465,7 @@ export class IframeBrowser extends Browser {
     }
 
     get(selector: GetParams[0], options?: GetParams[1]) {
-        return this.getIframeBody().find(selector, options).as("iframe_element");
+        return this.getIframeBody().find(selector, options);
     }
 
     xpath(selector: XpathParams[0], params?: XpathParams[1]) {
