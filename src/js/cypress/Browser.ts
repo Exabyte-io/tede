@@ -452,33 +452,36 @@ export class Browser extends BaseBrowser {
 }
 
 export class IframeBrowser extends Browser {
-    private selector: string;
+    selector: string;
 
-    private timeout: number;
+    timeout: number;
 
-    private iframeElement: Cypress.Chainable<JQuery<HTMLElement>>;
-
-    private bodyElement: Cypress.Chainable<JQuery<HTMLElement>>;
+    iframeElement?: Cypress.Chainable<JQuery<HTMLElement>>;
 
     constructor(selector: string, settings: BrowserSettings, timeoutKey: BrowserTimeout) {
         super(settings);
         this.selector = selector;
         this.timeout = this.getTimeoutTime(timeoutKey);
-        this.iframeElement = cy.get(this.selector, { timeout: this.timeout });
-        this.bodyElement = this.iframeElement
-            .its("0.contentDocument.body", {})
-            .should("not.be.empty");
     }
 
     get(selector: GetParams[0], options?: GetParams[1]) {
-        return this.bodyElement.find(selector, options);
+        return this.getIframeBody().find(selector, options).as("iframe_element");
     }
 
     xpath(selector: XpathParams[0], params?: XpathParams[1]) {
-        return this.bodyElement.xpath(selector, params);
+        return this.getIframeBody().xpath(selector, params);
+    }
+
+    getIframeBody() {
+        // Storing iframeElement is required for correct iframe unmount action tracking
+        this.iframeElement = cy.get(this.selector, { timeout: this.timeout });
+
+        return this.iframeElement.its("0.contentDocument.body", {}).should("not.be.empty");
     }
 
     assertIframeNotExistWithRetry() {
-        this.iframeElement.should("not.exist");
+        if (this.iframeElement) {
+            this.iframeElement.should("not.exist");
+        }
     }
 }
