@@ -290,13 +290,20 @@ export class Browser extends BaseBrowser {
     retry<T = boolean>(
         cb: () => Cypress.Chainable<T>,
         become?: T,
-        delay: BrowserTimeout | number = "zero",
+        delay: BrowserTimeout | number = TimeoutType.zero,
         timeout: BrowserTimeout | number = TimeoutType.md,
     ) {
-        const delayMilliseconds =
-            typeof delay === "number" ? delay : defaultSettings.timeouts[delay];
         const timeoutMilliseconds =
             typeof timeout === "number" ? timeout : defaultSettings.timeouts[timeout];
+        let delayMilliseconds = typeof delay === "number" ? delay : defaultSettings.timeouts[delay];
+
+        const DEFAULT_RETRY_COUNT = 30;
+
+        // Reduce amount of logs for long actions (30 seconds or more):
+        // retry 30 times by default, unless "delay" passed directly
+        if (timeoutMilliseconds >= DEFAULT_RETRY_COUNT * 1000 && delayMilliseconds === 0) {
+            delayMilliseconds = timeoutMilliseconds / DEFAULT_RETRY_COUNT;
+        }
 
         cy.until({
             it: cb,
@@ -327,6 +334,10 @@ export class Browser extends BaseBrowser {
         cy.reload(force);
     }
 
+    getUrl() {
+        return cy.url();
+    }
+
     replaceElementAttribute(selector: string, attribute: string, value: string) {
         this.get(selector).invoke("attr", attribute, value);
     }
@@ -337,9 +348,16 @@ export class Browser extends BaseBrowser {
         this.retry(() => cb(), true, options?.delay, options?.timeout);
     }
 
-    assertTextWithRetry(selector: string, textOrCallback: string | ((text: string) => void)) {
+    assertTextWithRetry(
+        selector: string,
+        textOrCallback: string | ((text: string) => void),
+        include = true,
+    ) {
         if (typeof textOrCallback === "string") {
-            this.get(selector).should("include.text", textOrCallback);
+            this.get(selector).should(
+                include ? "include.text" : "not.include.text",
+                textOrCallback,
+            );
         } else {
             this.getElementText(selector).should(textOrCallback);
         }
@@ -419,6 +437,15 @@ export class Browser extends BaseBrowser {
             .should("match", regexp);
     }
 
+    assertDisabledWithRetry(selector: string, disabled = true) {
+        this.get(selector).should(disabled ? "be.disabled" : "not.be.disabled");
+    }
+
+    assertFileDownloadedWithRetry(fileName: string) {
+        const downloadsFolder = Cypress.config("downloadsFolder");
+        cy.readFile(`${downloadsFolder}/${fileName}`).should("exist");
+    }
+
     // ======= End assertions ========
 
     // ======= Getters ========
@@ -428,6 +455,8 @@ export class IframeBrowser extends Browser {
     selector: string;
 
     timeout: number;
+
+    iframeElement?: Cypress.Chainable<JQuery<HTMLElement>>;
 
     constructor(selector: string, settings: BrowserSettings, timeoutKey: BrowserTimeout) {
         super(settings);
@@ -444,10 +473,15 @@ export class IframeBrowser extends Browser {
     }
 
     getIframeBody() {
-        return cy
-            .get(this.selector, { timeout: this.timeout })
-            .its("0.contentDocument.body", {})
-            .should("not.be.empty")
-            .then(cy.wrap);
+        // Storing iframeElement is required for correct iframe unmount action tracking
+        this.iframeElement = cy.get(this.selector, { timeout: this.timeout });
+
+        return this.iframeElement.its("0.contentDocument.body", {}).should("not.be.empty");
+    }
+
+    assertIframeNotExistWithRetry() {
+        if (this.iframeElement) {
+            this.iframeElement.should("not.exist");
+        }
     }
 }
