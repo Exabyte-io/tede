@@ -113,6 +113,10 @@ export class Browser extends BaseBrowser {
         this.getWithTimeout(selector, timeout).should("exist");
     }
 
+    clearInputValue(selector: string) {
+        this.get(selector).clear();
+    }
+
     /**
      * @summary Clear the field, and then set its value
      * @param selector {String} CSS selector for the field in question
