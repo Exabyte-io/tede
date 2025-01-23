@@ -200,6 +200,14 @@ export class Browser extends BaseBrowser {
         return this.get(selector).contains(text, { matchCase: false }).click();
     }
 
+    doubleClickOnText(
+        text: string,
+        selector = "body",
+        options: Partial<Cypress.ClickOptions> = {},
+    ) {
+        return this.get(selector).contains(text, { matchCase: false }).dblclick(options);
+    }
+
     clickOutside(x = 0, y = 0) {
         return this.get("body").click(x, y);
     }
