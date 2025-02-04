@@ -39,8 +39,9 @@ const path = require("path");
  * ```
  */
 class TestFeatureGenerator {
-    constructor(templateDir = __dirname) {
+    constructor(templateDir = __dirname, outputDirRoot = __dirname) {
         this.templateDir = templateDir;
+        this.outputDirRoot = outputDirRoot;
     }
 
     static generateTable(items, columns) {
@@ -117,8 +118,8 @@ class TestFeatureGenerator {
                     templateContent,
                     context,
                 );
-                const featuresDir = config.feature_path;
-                const outputPath = path.join(`${featuresDir}`, `${testCase.feature_name}.feature`);
+                const featuresDir = path.join(this.outputDirRoot, config.feature_path);
+                const outputPath = path.join(featuresDir, `${testCase.feature_name}.feature`);
 
                 if (!fs.existsSync(featuresDir)) {
                     fs.mkdirSync(featuresDir, { recursive: true });
