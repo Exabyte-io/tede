@@ -62,7 +62,7 @@ class TestFeatureGenerator {
             properties: schema,
             required: Object.keys(schema),
             additionalProperties: true,
-            $id: "testCase",
+            $id: `testCase_${Math.random()}`,
         };
 
         const { isValid, errors } = validate(testCase, jsonSchema);
