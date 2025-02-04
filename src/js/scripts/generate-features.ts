@@ -13,6 +13,40 @@ interface SchemaField {
     };
 }
 
+/**
+ * TestFeatureGenerator generates Gherkin feature files from YAML templates.
+ *
+ * This class processes YAML configuration files that define test cases and generates
+ * corresponding .feature files using predefined templates.
+ *
+ * @example
+ * ```typescript
+ * // Initialize generator with template directory
+ * const generator = new TestFeatureGenerator('./templates');
+ *
+ * // Generate feature files from all YAML files in template directory
+ * generator.generate();
+ * ```
+ *
+ * Expected YAML structure:
+ * ```yaml
+ * template: "template-file.feature"  # Template file name
+ * feature_path: "path/to/output"     # Output directory for generated features
+ * templateSchema:                    # Schema for validating test cases
+ *   field1:
+ *     type: "string"
+ *   field2:
+ *     type: "array"
+ *     items:
+ *       properties:
+ *         prop1:
+ *           type: "string"
+ * cases:                            # Test cases to generate
+ *   - feature_name: "test1"
+ *     field1: "value1"
+ *     field2: [{ prop1: "value2" }]
+ * ```
+ */
 export class TestFeatureGenerator {
     templateDir: string;
 
