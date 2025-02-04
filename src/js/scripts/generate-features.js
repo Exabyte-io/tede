@@ -1,17 +1,8 @@
-import { AnyObject } from "@mat3ra/esse/dist/js/esse/types";
-import { JSONSchema } from "@mat3ra/esse/dist/js/esse/utils";
-import { validate } from "@mat3ra/esse/dist/js/utils/ajv";
-import fs from "fs";
-import glob from "glob";
-import yaml from "js-yaml";
-import path from "path";
-
-interface SchemaField {
-    type: string;
-    items?: {
-        properties: Record<string, { type: string }>;
-    };
-}
+const { validate } = require("@mat3ra/esse/dist/js/utils/ajv");
+const fs = require("fs");
+const glob = require("glob");
+const yaml = require("js-yaml");
+const path = require("path");
 
 /**
  * TestFeatureGenerator generates Gherkin feature files from YAML templates.
@@ -20,7 +11,7 @@ interface SchemaField {
  * corresponding .feature files using predefined templates.
  *
  * @example
- * ```typescript
+ * ```javascript
  * // Initialize generator with template directory
  * const generator = new TestFeatureGenerator('./templates');
  *
@@ -47,14 +38,12 @@ interface SchemaField {
  *     field2: [{ prop1: "value2" }]
  * ```
  */
-export class TestFeatureGenerator {
-    templateDir: string;
-
-    constructor(templateDir: string = __dirname) {
+class TestFeatureGenerator {
+    constructor(templateDir = __dirname) {
         this.templateDir = templateDir;
     }
 
-    static generateTable(items: any[], columns: string[]): string {
+    static generateTable(items, columns) {
         if (!items || !Array.isArray(items)) {
             return "";
         }
@@ -66,47 +55,31 @@ export class TestFeatureGenerator {
             .join("\n");
     }
 
-    static validateTestCase(testCase: AnyObject, schema: Record<string, SchemaField>): void {
-        const jsonSchema: JSONSchema = {
+    static validateTestCase(testCase, schema) {
+        // Convert the template schema directly to JSON Schema format
+        const jsonSchema = {
             type: "object",
-            properties: {} as Record<string, any>,
+            properties: schema,
             required: Object.keys(schema),
-            additionalProperties: false,
+            additionalProperties: true,
             $id: "testCase",
-        } as const;
-
-        Object.entries(schema).forEach(([field, fieldSchema]) => {
-            if (fieldSchema.type === "array" && fieldSchema.items) {
-                jsonSchema.properties[field] = {
-                    type: "array",
-                    items: {
-                        type: "object",
-                        properties: {},
-                        required: Object.keys(fieldSchema.items.properties),
-                        additionalProperties: false,
-                    },
-                };
-
-                Object.entries(fieldSchema.items.properties).forEach(([prop, propSchema]) => {
-                    jsonSchema.properties[field].items.properties[prop] = {
-                        type: propSchema.type.toLowerCase(),
-                    };
-                });
-            } else {
-                jsonSchema.properties[field] = {
-                    type: fieldSchema.type.toLowerCase(),
-                };
-            }
-        });
+        };
 
         const { isValid, errors } = validate(testCase, jsonSchema);
 
         if (!isValid) {
-            throw new Error(`Validation failed: ${JSON.stringify(errors)}`);
+            const errorDetails = errors
+                .map((err) => `${err.instancePath} ${err.message}`)
+                .join("; ");
+            throw new Error(
+                `Validation failed for test case "${testCase.feature_name}": ${errorDetails}`,
+            );
         }
+
+        return true;
     }
 
-    static expandTemplate(template: string, context: AnyObject): string {
+    static expandTemplate(template, context) {
         return template.replace(/\${([^}]+)}/g, (match, key) => {
             const trimmedKey = key.trim();
 
@@ -124,15 +97,15 @@ export class TestFeatureGenerator {
         });
     }
 
-    processTemplateFile(yamlPath: string): void {
+    processTemplateFile(yamlPath) {
         try {
             const yamlContent = fs.readFileSync(yamlPath, "utf8");
-            const config = yaml.load(yamlContent) as AnyObject;
+            const config = yaml.load(yamlContent);
 
             const templatePath = path.join(this.templateDir, config.template);
             const templateContent = fs.readFileSync(templatePath, "utf8");
 
-            config.cases.forEach((testCase: AnyObject) => {
+            config.cases.forEach((testCase) => {
                 TestFeatureGenerator.validateTestCase(testCase, config.templateSchema);
 
                 const context = {
@@ -140,7 +113,10 @@ export class TestFeatureGenerator {
                     feature_path: config.feature_path,
                 };
 
-                const expandedContent = this.expandTemplate(templateContent, context);
+                const expandedContent = TestFeatureGenerator.expandTemplate(
+                    templateContent,
+                    context,
+                );
                 const featuresDir = config.feature_path;
                 const outputPath = path.join(`${featuresDir}`, `${testCase.feature_name}.feature`);
 
@@ -156,8 +132,10 @@ export class TestFeatureGenerator {
         }
     }
 
-    generate(): void {
+    generate() {
         const yamlFiles = glob.sync(path.join(this.templateDir, "*.yaml"));
         yamlFiles.forEach((file) => this.processTemplateFile(file));
     }
 }
+
+module.exports = { TestFeatureGenerator };
