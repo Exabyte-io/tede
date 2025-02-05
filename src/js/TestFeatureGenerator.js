@@ -1,8 +1,5 @@
 const { validate } = require("@mat3ra/esse/dist/js/utils/ajv");
-const fs = require("fs");
-const glob = require("glob");
 const yaml = require("js-yaml");
-const path = require("path");
 
 /**
  * TestFeatureGenerator generates Gherkin feature files from YAML templates.
@@ -39,11 +36,6 @@ const path = require("path");
  * ```
  */
 class TestFeatureGenerator {
-    constructor(templateDir = __dirname, outputDirRoot = __dirname) {
-        this.templateDir = templateDir;
-        this.outputDirRoot = outputDirRoot;
-    }
-
     static generateTable(items, columns) {
         if (!items || !Array.isArray(items)) {
             return "";
@@ -98,44 +90,33 @@ class TestFeatureGenerator {
         });
     }
 
-    processTemplateFile(yamlPath) {
+    static processTestCase(testCase, templateContent) {
+        const context = {
+            ...testCase,
+            feature_path: testCase.feature_path,
+        };
+
+        return TestFeatureGenerator.expandTemplate(templateContent, context);
+    }
+
+    static generate(yamlContent, templateContent) {
+        const features = [];
         try {
-            const yamlContent = fs.readFileSync(yamlPath, "utf8");
             const config = yaml.load(yamlContent);
-
-            const templatePath = path.join(this.templateDir, config.template);
-            const templateContent = fs.readFileSync(templatePath, "utf8");
-
             config.cases.forEach((testCase) => {
                 TestFeatureGenerator.validateTestCase(testCase, config.templateSchema);
 
-                const context = {
-                    ...testCase,
-                    feature_path: config.feature_path,
-                };
-
-                const expandedContent = TestFeatureGenerator.expandTemplate(
+                const featureContent = TestFeatureGenerator.processTestCase(
+                    testCase,
                     templateContent,
-                    context,
                 );
-                const featuresDir = path.join(this.outputDirRoot, config.feature_path);
-                const outputPath = path.join(featuresDir, `${testCase.feature_name}.feature`);
 
-                if (!fs.existsSync(featuresDir)) {
-                    fs.mkdirSync(featuresDir, { recursive: true });
-                }
-
-                fs.writeFileSync(outputPath, expandedContent);
-                console.log(`Generated: ${outputPath}`);
+                features.push(featureContent);
             });
         } catch (error) {
-            console.error(`Error processing ${yamlPath}:`, error);
+            console.error(`Error processing ${yamlContent}:`, error);
         }
-    }
-
-    generate() {
-        const yamlFiles = glob.sync(path.join(this.templateDir, "*.yaml"));
-        yamlFiles.forEach((file) => this.processTemplateFile(file));
+        return features;
     }
 }
 
