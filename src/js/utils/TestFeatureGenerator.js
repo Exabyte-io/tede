@@ -1,5 +1,6 @@
 const { validate } = require("@mat3ra/esse/dist/js/utils/ajv");
-const yaml = require("js-yaml");
+const { readYAMLFile } = require("@mat3ra/utils/dist/js/server/yaml");
+const { expandTemplate } = require("@mat3ra/utils/dist/js/shared/str");
 
 /**
  * TestFeatureGenerator generates Gherkin feature files from YAML templates.
@@ -9,10 +10,9 @@ const yaml = require("js-yaml");
  *
  * @example
  * ```javascript
- * // Initialize generator with template directory
- * const generator = new TestFeatureGenerator('./templates');
+ * const generator = new TestFeatureGenerator();
  *
- * // Generate feature files from all YAML files in template directory
+ * // Generate features from a YAML configuration file and a template file
  * generator.generate();
  * ```
  *
@@ -72,22 +72,18 @@ class TestFeatureGenerator {
         return true;
     }
 
-    static expandTemplate(template, context) {
-        return template.replace(/\${([^}]+)}/g, (match, key) => {
-            const trimmedKey = key.trim();
+    static processTemplate(template, context) {
+        const processedContext = { ...context };
 
-            if (trimmedKey.endsWith("_table")) {
-                const arrayKey = trimmedKey.replace("_table", "");
-                const array = context[arrayKey];
-                if (array && Array.isArray(array)) {
-                    const columns = array[0] ? Object.keys(array[0]) : [];
-                    return TestFeatureGenerator.generateTable(array, columns);
-                }
-                return "";
+        Object.keys(context).forEach((key) => {
+            const array = context[key];
+            if (Array.isArray(array)) {
+                const columns = array[0] ? Object.keys(array[0]) : [];
+                processedContext[`${key}_table`] = this.generateTable(array, columns);
             }
-
-            return context[trimmedKey] !== undefined ? String(context[trimmedKey]) : match;
         });
+
+        return expandTemplate(template, processedContext);
     }
 
     static processTestCase(testCase, templateContent) {
@@ -96,13 +92,13 @@ class TestFeatureGenerator {
             feature_path: testCase.feature_path,
         };
 
-        return TestFeatureGenerator.expandTemplate(templateContent, context);
+        return TestFeatureGenerator.processTemplate(templateContent, context);
     }
 
     static generate(yamlContent, templateContent) {
         const features = [];
         try {
-            const config = yaml.load(yamlContent);
+            const config = readYAMLFile(yamlContent);
             config.cases.forEach((testCase) => {
                 TestFeatureGenerator.validateTestCase(testCase, config.templateSchema);
 
@@ -111,7 +107,10 @@ class TestFeatureGenerator {
                     templateContent,
                 );
 
-                features.push(featureContent);
+                features.push({
+                    name: testCase.feature_name,
+                    content: featureContent,
+                });
             });
         } catch (error) {
             console.error(`Error processing ${yamlContent}:`, error);
