@@ -23,6 +23,7 @@
         "@badeball/cypress-cucumber-preprocessor": "^20.0.0",
         "@cypress/xpath": "^2.0.3",
         "@mat3ra/esse": "^2025.1.27-0",
+        "@mat3ra/utils": "git+https://git@github.com/exabyte-io/utils.git#d6ec832b02524458e08dac23d000ff226b5c00d2",
         "@types/lodash": "^4.14.202",
         "@types/random-seed": "^0.3.5",
         "cypress": "^13.6.*",
