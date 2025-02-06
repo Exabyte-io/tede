@@ -1,6 +1,6 @@
 const { validate } = require("@mat3ra/esse/dist/js/utils/ajv");
-const { readYAMLFile } = require("@mat3ra/utils/dist/js/server/yaml");
-const { expandTemplate } = require("@mat3ra/utils/dist/js/shared/str");
+const { readYAMLFile, writeYAMLFile } = require("@mat3ra/utils/server");
+const utils = require("@mat3ra/utils");
 
 /**
  * TestFeatureGenerator generates Gherkin feature files from YAML templates.
@@ -83,7 +83,7 @@ class TestFeatureGenerator {
             }
         });
 
-        return expandTemplate(template, processedContext);
+        return utils.str.renderTemplateString(template, processedContext);
     }
 
     static processTestCase(testCase, templateContent) {
@@ -119,4 +119,4 @@ class TestFeatureGenerator {
     }
 }
 
-module.exports = { TestFeatureGenerator };
+module.exports = { TestFeatureGenerator, readYAMLFile, writeYAMLFile };
