@@ -74,11 +74,6 @@ export class TestCaseHandler {
     }
 
     getFeatureContent() {
-        const context = {
-            ...this.testCase,
-            feature_path: this.testCase.feature_path,
-        };
-
-        return this.renderTemplate(context);
+        return this.renderTemplate(this.testCase);
     }
 }
