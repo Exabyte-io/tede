@@ -1,5 +1,7 @@
+const { yaml } = require("@mat3ra/utils/server");
+
 const { validate } = require("@mat3ra/esse/dist/js/utils/ajv");
-const { readYAMLFile, writeYAMLFile } = require("@mat3ra/utils/server");
+
 const utils = require("@mat3ra/utils");
 
 /**
@@ -98,7 +100,7 @@ class TestFeatureGenerator {
     static generate(yamlContent, templateContent) {
         const features = [];
         try {
-            const config = readYAMLFile(yamlContent);
+            const config = yaml.readYAMLFile(yamlContent);
             config.cases.forEach((testCase) => {
                 TestFeatureGenerator.validateTestCase(testCase, config.templateSchema);
 
@@ -119,4 +121,4 @@ class TestFeatureGenerator {
     }
 }
 
-module.exports = { TestFeatureGenerator, readYAMLFile, writeYAMLFile };
+module.exports = { TestFeatureGenerator };
