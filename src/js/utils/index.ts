@@ -10,6 +10,7 @@ export function generateTestFeaturesFromYAMLConfig(yamlContent: string, template
         config.cases.forEach((testCase) => {
             const testCaseHandler = new TestCaseHandler({
                 testCase,
+                // @ts-ignore
                 templateSchema: config.templateSchema,
                 templateContent,
             });
