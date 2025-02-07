@@ -1,22 +1,29 @@
+import { AnyObject } from "@mat3ra/esse/dist/js/esse/types";
 import { validate } from "@mat3ra/esse/dist/js/utils/ajv";
 import { Utils } from "@mat3ra/utils";
 
 export class TestCaseHandler {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    private testCase: any;
+    private testCaseConfig: AnyObject;
 
-    private templateSchema: any;
+    private testCaseSchema: AnyObject;
 
-    private templateContent: any;
+    private templateContent: string;
 
-    // @ts-ignore
-    constructor({ testCase, templateSchema, templateContent }) {
-        this.testCase = testCase;
-        this.templateSchema = templateSchema;
+    constructor({
+        testCaseConfig,
+        testCaseSchema,
+        templateContent,
+    }: {
+        testCaseConfig: AnyObject;
+        testCaseSchema: AnyObject;
+        templateContent: string;
+    }) {
+        this.testCaseConfig = testCaseConfig;
+        this.testCaseSchema = testCaseSchema;
         this.templateContent = templateContent;
     }
 
-    static generateTable(items: any[], columns: (string | number)[]) {
+    static generateTable({ items, columns }: { items: any[]; columns: any[] }): string {
         if (!items || !Array.isArray(items)) {
             return "";
         }
@@ -28,52 +35,29 @@ export class TestCaseHandler {
             .join("\n");
     }
 
-    validateTestCase() {
-        // Convert the template schema directly to JSON Schema format
-        // TODO: this should be taken directly from YAML
-        const jsonSchema = {
-            type: "object",
-            properties: this.templateSchema,
-            required: Object.keys(this.templateSchema),
-            additionalProperties: true,
-            $id: `testCase_${Math.random()}`,
-        };
-
-        const { isValid, errors } = validate(this.testCase, jsonSchema);
+    validateTestCase(): boolean {
+        const { isValid, errors } = validate(this.testCaseConfig, this.testCaseSchema);
 
         if (!isValid) {
-            // @ts-ignore
-            const errorDetails = errors
-                .map((err) => `${err.instancePath} ${err.message}`)
-                .join("; ");
+            const errorDetails =
+                errors?.map((err) => `${err.instancePath} ${err.message}`).join("; ") ?? "";
             throw new Error(
-                `Validation failed for test case "${this.testCase.feature_name}": ${errorDetails}`,
+                `Validation failed for test case "${this.testCaseConfig.feature_name}": ${errorDetails}`,
             );
         }
 
         return true;
     }
 
-    renderTemplate(context = {}) {
-        const processedContext = { ...context };
-
-        Object.keys(context).forEach((key) => {
-            // @ts-ignore
-            const maybeArray = context[key];
-            if (Array.isArray(maybeArray)) {
-                const columns = maybeArray[0] ? Object.keys(maybeArray[0]) : [];
-                // @ts-ignore
-                processedContext[`${key}_table`] = TestCaseHandler.generateTable(
-                    maybeArray,
-                    columns,
-                );
-            }
+    renderTemplate(context: AnyObject = {}): string {
+        const defaultContext = { convertToTable: TestCaseHandler.generateTable };
+        return Utils.str.renderTemplateStringWithEval(this.templateContent, {
+            ...defaultContext,
+            ...context,
         });
-
-        return Utils.str.renderTemplateString(this.templateContent, processedContext);
     }
 
-    getFeatureContent() {
-        return this.renderTemplate(this.testCase);
+    getFeatureContent(): string {
+        return this.renderTemplate(this.testCaseConfig);
     }
 }
