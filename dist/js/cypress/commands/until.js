@@ -54,7 +54,7 @@ Cypress.Commands.add("until", ({ it, become, delay = 500, timeout = Cypress.conf
     };
     return retry();
 });
-Cypress.Commands.add("thenWithNull",
+Cypress.Commands.add("thenWithNull", 
 // @ts-ignore
 { prevSubject: true }, (prevSubject, callback) => {
     return (cy
