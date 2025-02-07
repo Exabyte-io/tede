@@ -1,4 +1,6 @@
 import { AnyObject } from "@mat3ra/esse/dist/js/esse/types";
+import fs from "fs";
+import path from "path";
 
 import { TestCaseHandler } from "./TestCaseHandler";
 
@@ -6,10 +8,14 @@ interface TestCase extends AnyObject {
     feature_name: string;
 }
 
-/**
- * Generates test features from a test configuration object
- */
-export function generateTestFeaturesFromTestConfig(
+interface TestConfig extends AnyObject {
+    template_path: string;
+    feature_path: string;
+    testCaseSchema: AnyObject;
+    cases: TestCase[];
+}
+
+export function generateTestFeatureContentsFromTestCases(
     templateContent: string,
     testCaseSchema: AnyObject,
     testCaseConfigs: TestCase[],
@@ -32,4 +38,35 @@ export function generateTestFeaturesFromTestConfig(
             content: testCaseHandler.getFeatureContent(),
         };
     });
+}
+
+export function generateFeatureFilesFromConfig(
+    testConfig: TestConfig,
+    inputDir: string,
+    outputDir: string,
+): void {
+    try {
+        const { testCaseSchema } = testConfig;
+        const templatePath = path.join(inputDir, testConfig.template_path);
+        const templateContent = fs.readFileSync(templatePath, "utf8");
+
+        const features = generateTestFeatureContentsFromTestCases(
+            templateContent,
+            testCaseSchema,
+            testConfig.cases,
+        );
+
+        const featurePath = path.join(outputDir, testConfig.feature_path);
+        if (!fs.existsSync(featurePath)) {
+            fs.mkdirSync(featurePath, { recursive: true });
+        }
+
+        features.forEach(({ name, content }) => {
+            const outputPath = path.join(featurePath, `${name}.feature`);
+            fs.writeFileSync(outputPath, content);
+            console.log(`Generated: ${outputPath}`);
+        });
+    } catch (error) {
+        console.error(`Error generating feature files: ${error}`);
+    }
 }

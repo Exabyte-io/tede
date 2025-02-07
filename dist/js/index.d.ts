@@ -1,2 +1,2 @@
-export { generateTestFeaturesFromTestConfig } from "./utils";
+export { generateTestFeatureContentsFromTestCases, generateFeatureFilesFromConfig } from "./utils";
 export { TestCaseHandler } from "./utils/TestCaseHandler";
