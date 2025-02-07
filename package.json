@@ -4,7 +4,7 @@
     "description": "TEst DEfinitions (TEDE)",
     "author": "Exabyte Inc.",
     "license": "ISC",
-    "main": "dist/index.js",
+    "main": "dist/js/index.js",
     "files": [
         "/dist/js",
         "/src/js",
