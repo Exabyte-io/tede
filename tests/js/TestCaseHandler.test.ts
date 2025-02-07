@@ -8,7 +8,7 @@ const testCaseConfig = {
     key1: "value1",
 };
 
-const templateSchema = {
+const testCaseSchema = {
     type: "object",
     properties: {
         key1: { type: "string" },
@@ -22,7 +22,7 @@ describe("TestCaseHandler test", () => {
     it("should replace key1 in templateContent with value1", () => {
         const testCaseHandler = new TestCaseHandler({
             testCaseConfig,
-            templateSchema,
+            testCaseSchema,
             templateContent,
         });
         const result = testCaseHandler.getFeatureContent();
@@ -114,3 +114,4 @@ Feature: Healthcheck to import JARVIS Material
         });
         expect(renderedOutput.trim()).to.equal(expectedOutput);
     });
+});

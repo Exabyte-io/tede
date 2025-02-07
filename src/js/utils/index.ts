@@ -1,8 +1,13 @@
 import { AnyObject } from "@mat3ra/esse/dist/js/esse/types";
+
 import { TestCaseHandler } from "./TestCaseHandler";
 
+interface TestCase extends AnyObject {
+    feature_name: string;
+}
+
 interface TestConfig {
-    cases: AnyObject[];
+    cases: TestCase[];
     templateSchema: AnyObject;
 }
 
@@ -14,18 +19,20 @@ interface TestConfig {
  */
 export function generateTestFeaturesFromTestConfig(
     testConfig: TestConfig,
-    templateContent: string
+    templateContent: string,
 ): Array<{ name: string; content: string }> {
     const features: Array<{ name: string; content: string }> = [];
-    
+
     try {
         testConfig.cases.forEach((testCaseConfig) => {
             const testCaseHandler = new TestCaseHandler({
-                testCaseConfig: testCaseConfig,
+                testCaseConfig,
                 testCaseSchema: testConfig.templateSchema,
                 templateContent,
             });
 
+            testCaseHandler.validateTestCase();
+            
             const featureContent = testCaseHandler.getFeatureContent();
 
             features.push({
@@ -35,7 +42,8 @@ export function generateTestFeaturesFromTestConfig(
         });
     } catch (error) {
         console.error(`Error processing test configuration:`, error);
+        throw error;
     }
-    
+
     return features;
 }
