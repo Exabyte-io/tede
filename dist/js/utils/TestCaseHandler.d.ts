@@ -1,14 +1,15 @@
+import { AnyObject } from "@mat3ra/esse/dist/js/esse/types";
 export declare class TestCaseHandler {
-    private testCase;
-    private templateSchema;
+    private testCaseConfig;
+    private testCaseSchema;
     private templateContent;
-    constructor({ testCase, templateSchema, templateContent }: {
-        testCase: any;
-        templateSchema: any;
-        templateContent: any;
+    constructor({ testCaseConfig, testCaseSchema, templateContent, }: {
+        testCaseConfig: AnyObject;
+        testCaseSchema: AnyObject;
+        templateContent: string;
     });
-    static generateTable(items: any[], columns: (string | number)[]): string;
+    static generateTable(arrayOfObjects: AnyObject[]): string;
     validateTestCase(): boolean;
-    renderTemplate(context?: {}): string;
+    renderTemplate(context?: AnyObject): string;
     getFeatureContent(): string;
 }

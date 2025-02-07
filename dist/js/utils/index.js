@@ -1,30 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateTestFeaturesFromYAMLConfig = void 0;
-const utils_1 = require("@mat3ra/utils");
+exports.generateTestFeaturesFromTestConfig = void 0;
 const TestCaseHandler_1 = require("./TestCaseHandler");
-function generateTestFeaturesFromYAMLConfig(yamlContent, templateContent) {
-    const features = [];
-    try {
-        const config = utils_1.Utils.yaml.convertYAMLStringToJSON(yamlContent);
-        // @ts-ignore
-        config.cases.forEach((testCase) => {
-            const testCaseHandler = new TestCaseHandler_1.TestCaseHandler({
-                testCase,
-                // @ts-ignore
-                templateSchema: config.templateSchema,
-                templateContent,
-            });
-            const featureContent = testCaseHandler.getFeatureContent();
-            features.push({
-                name: testCase.feature_name,
-                content: featureContent,
-            });
+/**
+ * Generates test features from a test configuration object
+ */
+function generateTestFeaturesFromTestConfig(templateContent, testCaseSchema, testCaseConfigs) {
+    return testCaseConfigs.map((testCaseConfig) => {
+        if (!testCaseSchema.$id) {
+            testCaseSchema.$id = `testCaseSchema + ${Math.random()}`;
+        }
+        const testCaseHandler = new TestCaseHandler_1.TestCaseHandler({
+            testCaseConfig,
+            testCaseSchema,
+            templateContent,
         });
-    }
-    catch (error) {
-        console.error(`Error processing YAML Content:`, error);
-    }
-    return features;
+        testCaseHandler.validateTestCase();
+        return {
+            name: testCaseConfig.feature_name,
+            content: testCaseHandler.getFeatureContent(),
+        };
+    });
 }
-exports.generateTestFeaturesFromYAMLConfig = generateTestFeaturesFromYAMLConfig;
+exports.generateTestFeaturesFromTestConfig = generateTestFeaturesFromTestConfig;
