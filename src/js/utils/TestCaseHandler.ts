@@ -23,16 +23,10 @@ export class TestCaseHandler {
         this.templateContent = templateContent;
     }
 
-    static generateTable({ items, columns }: { items: any[]; columns: any[] }): string {
-        if (!items || !Array.isArray(items)) {
-            return "";
-        }
-        return items
-            .map((item) => {
-                const cells = columns.map((col: string | number) => item[col]);
-                return `      | ${cells.join(" | ")} |`;
-            })
-            .join("\n");
+    static generateTable(arrayOfObjects: AnyObject[]): string {
+        const csv = Utils.array.convertToCompactCSVArrayOfObjects(arrayOfObjects);
+
+        return csv.map((entries) => `      | ${entries.join(" | ")} |`).join("\n");
     }
 
     validateTestCase(): boolean {

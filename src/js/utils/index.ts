@@ -6,44 +6,30 @@ interface TestCase extends AnyObject {
     feature_name: string;
 }
 
-interface TestConfig {
-    testCaseSchema: AnyObject;
-    cases: TestCase[];
-}
-
 /**
  * Generates test features from a test configuration object
- * @param testConfig Configuration object containing test cases and schema
- * @param templateContent Template string to use for generating features
- * @returns Array of generated features with names and content
  */
 export function generateTestFeaturesFromTestConfig(
-    testConfig: TestConfig,
     templateContent: string,
+    testCaseSchema: AnyObject,
+    testCaseConfigs: TestCase[],
 ): Array<{ name: string; content: string }> {
-    const features: Array<{ name: string; content: string }> = [];
+    return testCaseConfigs.map((testCaseConfig) => {
+        if (!testCaseSchema.$id) {
+            testCaseSchema.$id = `testCaseSchema + ${Math.random()}`;
+        }
 
-    try {
-        testConfig.cases.forEach((testCaseConfig) => {
-            const testCaseHandler = new TestCaseHandler({
-                testCaseConfig,
-                testCaseSchema: testConfig.testCaseSchema,
-                templateContent,
-            });
-
-            testCaseHandler.validateTestCase();
-
-            const featureContent = testCaseHandler.getFeatureContent();
-
-            features.push({
-                name: testCaseConfig.feature_name,
-                content: featureContent,
-            });
+        const testCaseHandler = new TestCaseHandler({
+            testCaseConfig,
+            testCaseSchema,
+            templateContent,
         });
-    } catch (error) {
-        console.error(`Error processing test configuration:`, error);
-        throw error;
-    }
 
-    return features;
+        testCaseHandler.validateTestCase();
+
+        return {
+            name: testCaseConfig.feature_name,
+            content: testCaseHandler.getFeatureContent(),
+        };
+    });
 }
