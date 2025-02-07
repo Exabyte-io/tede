@@ -7,8 +7,8 @@ interface TestCase extends AnyObject {
 }
 
 interface TestConfig {
+    testCaseSchema: AnyObject;
     cases: TestCase[];
-    templateSchema: AnyObject;
 }
 
 /**
@@ -27,12 +27,12 @@ export function generateTestFeaturesFromTestConfig(
         testConfig.cases.forEach((testCaseConfig) => {
             const testCaseHandler = new TestCaseHandler({
                 testCaseConfig,
-                testCaseSchema: testConfig.templateSchema,
+                testCaseSchema: testConfig.testCaseSchema,
                 templateContent,
             });
 
             testCaseHandler.validateTestCase();
-            
+
             const featureContent = testCaseHandler.getFeatureContent();
 
             features.push({
