@@ -1,6 +1,6 @@
 name: Continuous Testing and Publication
 
-on: [push]
+on: [ push ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.8.6]
+        python-version: [ 3.10.13 ]
 
     steps:
       - name: Checkout this repository
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.8.6]
+        python-version: [ 3.10.13 ]
 
     steps:
       - name: Checkout this repository
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14.x, 20.x]
+        node-version: [ 20.x ]
 
     steps:
       - name: Checkout this repository
@@ -80,7 +80,7 @@ jobs:
       - name: Run JS validate
         uses: ./actions/js/validate
         with:
-          node-version: '14.x'
+          node-version: '20.x'
           skip-eslint: 'true'
 
       - name: Run JS tests
@@ -89,7 +89,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
   publish-js-package:
-    needs: [run-js-tests]
+    needs: [ run-js-tests ]
     runs-on: ubuntu-latest
     if: (github.repository != 'Exabyte-io/template-definitions-js-py') && (github.ref_name == 'main')
 
@@ -107,7 +107,7 @@ jobs:
       - name: Publish JS release
         uses: ./actions/js/publish
         with:
-          node-version: 14.19.x
+          node-version: 20.x
           npm-token: ${{ secrets.NPM_TOKEN }}
           github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
 
@@ -117,23 +117,23 @@ jobs:
     if: (github.repository != 'Exabyte-io/template-definitions-js-py') && (github.ref_name == 'main')
 
     steps:
-      -   name: Checkout this repository
-          uses: actions/checkout@v3
-          with:
-            lfs: true
+      - name: Checkout this repository
+        uses: actions/checkout@v3
+        with:
+          lfs: true
 
-      -   name: Checkout actions repository
-          uses: actions/checkout@v3
-          with:
-            repository: Exabyte-io/actions
-            token: ${{ secrets.BOT_GITHUB_TOKEN }}
-            path: actions
+      - name: Checkout actions repository
+        uses: actions/checkout@v3
+        with:
+          repository: Exabyte-io/actions
+          token: ${{ secrets.BOT_GITHUB_TOKEN }}
+          path: actions
 
-      -   name: Publish python release
-          uses: ./actions/py/publish
-          with:
-            python-version: 3.x
-            github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
-            pypi-username: ${{ secrets.PYPI_USERNAME }}
-            pypi-password: ${{ secrets.PYPI_PASSWORD }}
-            publish-tag: 'false'
+      - name: Publish python release
+        uses: ./actions/py/publish
+        with:
+          python-version: 3.10.13
+          github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
+          pypi-username: ${{ secrets.PYPI_USERNAME }}
+          pypi-password: ${{ secrets.PYPI_PASSWORD }}
+          publish-tag: 'false'

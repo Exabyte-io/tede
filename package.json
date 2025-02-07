@@ -4,9 +4,9 @@
     "description": "TEst DEfinitions (TEDE)",
     "author": "Exabyte Inc.",
     "license": "ISC",
-    "main": "lib/index.js",
+    "main": "dist/js/index.js",
     "files": [
-        "/lib",
+        "/dist/js",
         "/src/js",
         "tsconfig.json"
     ],
@@ -22,13 +22,18 @@
         "@babel/runtime-corejs3": "7.16.8",
         "@badeball/cypress-cucumber-preprocessor": "^20.0.0",
         "@cypress/xpath": "^2.0.3",
+        "@mat3ra/esse": "^2025.1.27-0",
+        "@mat3ra/utils": "^2025.2.7-0",
+        "@mat3ra/tsconfig": "2024.6.3-0",
         "@types/lodash": "^4.14.202",
         "@types/random-seed": "^0.3.5",
         "cypress": "^13.6.*",
         "lodash": "^4.17.*",
         "moment": "^2.30.1",
         "random-seed": "^0.3.0",
-        "typescript": "^5.0.2"
+        "typescript": "^5.0.2",
+        "glob": "^7.2.3",
+        "js-yaml": "^4.1.0"
     },
     "devDependencies": {
         "@exabyte-io/eslint-config": "^2023.8.29-1",
@@ -59,17 +64,16 @@
         "lint": "eslint --cache src/js tests/js && prettier --write src/js tests/js",
         "lint:fix": "eslint --fix --cache src/js tests/js && prettier --write src/js tests/js",
         "lint:staged": "lint-staged",
-        "postinstall": "npm run transpile",
         "prepare": "node bootstrap.js",
         "prettier": "prettier --check src/js tests/js",
         "test": "nyc --reporter=text mocha --recursive --bail tests/js",
-        "transpile": "mkdir -p lib; babel src/js --out-dir lib"
+        "transpile": "tsc"
     },
     "engines": {
-        "node": ">=12.0.0"
+        "node": ">=20.0.0"
     },
     "lint-staged": {
-        "*.{js,ts,tsx}": "eslint --cache --fix",
-        "*.{js,ts,tsx,css}": "prettier --write"
+        "*.{js,ts,tsx!dist/**/*}": "eslint --cache --fix",
+        "*.{js,ts,tsx,css!dist/**/*}": "prettier --write"
     }
 }
