@@ -27,10 +27,10 @@ function generateTestFeatureContentsFromTestCases(templateContent, testCaseSchem
 exports.generateTestFeatureContentsFromTestCases = generateTestFeatureContentsFromTestCases;
 function generateFeatureFilesFromConfig(testConfig, inputDir, outputDir) {
     try {
-        const { testCaseSchema } = testConfig;
+        const { schema, cases } = testConfig;
         const templatePath = path_1.default.join(inputDir, testConfig.template_path);
         const templateContent = fs_1.default.readFileSync(templatePath, "utf8");
-        const features = generateTestFeatureContentsFromTestCases(templateContent, testCaseSchema, testConfig.cases);
+        const features = generateTestFeatureContentsFromTestCases(templateContent, schema, cases);
         const featurePath = path_1.default.join(outputDir, testConfig.feature_path);
         if (!fs_1.default.existsSync(featurePath)) {
             fs_1.default.mkdirSync(featurePath, { recursive: true });
