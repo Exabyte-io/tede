@@ -1,6 +1,7 @@
 import { Utils } from "@mat3ra/utils";
 import { expect } from "chai";
 
+import { generateTestFeaturesFromTestConfig } from "../../src/js/utils";
 import { TestCaseHandler } from "../../src/js/utils/TestCaseHandler";
 
 const testCaseConfig = {
@@ -32,43 +33,45 @@ describe("TestCaseHandler test", () => {
 });
 describe("Template rendering with eval", () => {
     it("should correctly render the template with the provided context", () => {
-        const context = {
-            tags: "@notebook_healthcheck",
-            notebook_name: "import_material_from_jarvis_db_entry.ipynb",
-            material_name: "JARVIS Material",
-            output_materials: [
-                { material_name: "Te2 Mo1", material_index: 2 },
-                { material_name: "Ga2 Te2", material_index: 3 },
-            ],
+        const testCaseSchema = {
+            type: "object",
+            properties: {
+                tags: { type: "string" },
+                notebook_name: { type: "string" },
+                material_name: { type: "string" },
+                output_materials: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            material_name: { type: "string" },
+                            material_index: { type: "number" },
+                        },
+                        required: ["material_name", "material_index"],
+                    },
+                },
+            },
+            required: ["tags", "notebook_name", "material_name", "output_materials"],
         };
 
-        function convertToTable(outputMaterials: any[]) {
-            return outputMaterials
-                .map(
-                    ({
-                        material_name,
-                        material_index,
-                    }: {
-                        material_name: string;
-                        material_index: number;
-                    }) => `      | ${material_name} | ${material_index} |`,
-                )
-                .join("\n");
-        }
+        const testCaseConfigs = [
+            {
+                tags: "@notebook_healthcheck",
+                feature_name: "material_import",
+                notebook_name: "import_material.ipynb",
+                material_name: "Material",
+                output_materials: [
+                    { material_name: "Te2 Mo1", material_index: 2 },
+                    { material_name: "Ga2 Te2", material_index: 3 },
+                ],
+            },
+        ];
 
-        const template = `
+        const templateContent = `
 \${tags}
 Feature: Healthcheck to import \${material_name}
 
   Scenario:
-    When I open materials designer page
-    Then I see material designer page
-
-    # Open
-    When I open JupyterLite Transformation dialog
-    Then I see JupyterLite Transformation dialog
-    And I see file "Introduction.ipynb" opened
-
     # Open notebook
     When I double click on "\${notebook_name}" entry in sidebar
     And I see file "\${notebook_name}" opened
@@ -78,41 +81,33 @@ Feature: Healthcheck to import \${material_name}
     And I see kernel status is Idle
     And I submit materials
     Then material with following name exists in state
-      | name | index |
 \${convertToTable(output_materials)}
 `;
 
         const expectedOutput = `
 @notebook_healthcheck
-Feature: Healthcheck to import JARVIS Material
+Feature: Healthcheck to import Material
 
   Scenario:
-    When I open materials designer page
-    Then I see material designer page
-
-    # Open
-    When I open JupyterLite Transformation dialog
-    Then I see JupyterLite Transformation dialog
-    And I see file "Introduction.ipynb" opened
-
     # Open notebook
-    When I double click on "import_material_from_jarvis_db_entry.ipynb" entry in sidebar
-    And I see file "import_material_from_jarvis_db_entry.ipynb" opened
+    When I double click on "import_material.ipynb" entry in sidebar
+    And I see file "import_material.ipynb" opened
 
     # Run
     And I Run All Cells
     And I see kernel status is Idle
     And I submit materials
     Then material with following name exists in state
-      | name | index |
+      | material_name | material_index |
       | Te2 Mo1 | 2 |
       | Ga2 Te2 | 3 |
 `.trim();
 
-        const renderedOutput = Utils.str.renderTemplateStringWithEval(template, {
-            ...context,
-            convertToTable,
-        });
+        const renderedOutput = generateTestFeaturesFromTestConfig(
+            templateContent,
+            testCaseSchema,
+            testCaseConfigs,
+        )[0].content;
         expect(renderedOutput.trim()).to.equal(expectedOutput);
     });
 });
