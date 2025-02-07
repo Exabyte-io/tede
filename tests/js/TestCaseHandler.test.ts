@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { generateTestFeaturesFromTestConfig } from "../../src/js/utils";
+import { generateTestFeatureContentsFromTestCases } from "../../src/js/utils";
 import { TestCaseHandler } from "../../src/js/utils/TestCaseHandler";
 
 describe("TestCaseHandler test", () => {
@@ -103,7 +103,7 @@ Feature: Healthcheck to import Material
 `.trim();
 
     it("should generate test features from test config", () => {
-        const renderedOutput = generateTestFeaturesFromTestConfig(
+        const renderedOutput = generateTestFeatureContentsFromTestCases(
             templateContent,
             testCaseSchema,
             testCaseConfigs,
