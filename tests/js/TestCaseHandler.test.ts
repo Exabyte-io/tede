@@ -1,7 +1,12 @@
 import { expect } from "chai";
+import fs from "fs";
+import path from "path";
 
-import { generateTestFeatureContentsFromTestCases } from "../../src/js/utils";
-import { TestCaseHandler } from "../../src/js/utils/TestCaseHandler";
+import {
+    generateFeatureFilesFromConfig,
+    generateTestFeatureContentsFromTestCases,
+    TestCaseHandler,
+} from "../../src/js";
 
 describe("TestCaseHandler test", () => {
     const testCaseConfig = {
@@ -109,5 +114,29 @@ Feature: Healthcheck to import Material
             testCaseConfigs,
         )[0].content;
         expect(renderedOutput.trim()).to.equal(expectedOutput);
+    });
+
+    it("should generate and write test features to file", () => {
+        const tmpDir = path.join(__dirname, "./tmp/");
+        const featureName = "material_import.feature";
+        const featurePath = "./features/";
+        const testConfig = {
+            template_path: "template.ftl",
+            feature_path: featurePath,
+            testCaseSchema,
+            cases: testCaseConfigs,
+        };
+        if (!fs.existsSync(tmpDir)) {
+            fs.mkdirSync(tmpDir);
+        }
+        fs.writeFileSync(path.join(tmpDir, testConfig.template_path), templateContent);
+        generateFeatureFilesFromConfig(testConfig, tmpDir, tmpDir);
+        const featureContent = fs.readFileSync(path.join(tmpDir, featurePath, featureName), "utf8");
+        expect(featureContent.trim()).to.equal(expectedOutput);
+        fs.rm(tmpDir, { recursive: true }, (err) => {
+            if (err) {
+                console.error(err);
+            }
+        });
     });
 });
