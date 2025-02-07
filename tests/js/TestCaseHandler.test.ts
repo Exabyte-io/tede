@@ -1,7 +1,7 @@
+import { Utils } from "@mat3ra/utils";
 import { expect } from "chai";
 
 import { TestCaseHandler } from "../../src/js/utils/TestCaseHandler";
-import { Utils } from "@mat3ra/utils";
 
 const testCaseConfig = {
     feature_name: "feature1",
@@ -14,8 +14,9 @@ const testCaseSchema = {
         key1: { type: "string" },
     },
     required: ["key1"],
-}
+};
 
+// eslint-disable-next-line no-template-curly-in-string
 const templateContent = "This is key1 = ${key1}";
 
 describe("TestCaseHandler test", () => {
@@ -45,9 +46,9 @@ describe("Template rendering with eval", () => {
             return outputMaterials
                 .map(
                     ({
-                         material_name,
-                         material_index,
-                     }: {
+                        material_name,
+                        material_index,
+                    }: {
                         material_name: string;
                         material_index: number;
                     }) => `      | ${material_name} | ${material_index} |`,
@@ -108,7 +109,7 @@ Feature: Healthcheck to import JARVIS Material
       | Ga2 Te2 | 3 |
 `.trim();
 
-        const renderedOutput =  Utils.str.renderTemplateStringWithEval(template, {
+        const renderedOutput = Utils.str.renderTemplateStringWithEval(template, {
             ...context,
             convertToTable,
         });
