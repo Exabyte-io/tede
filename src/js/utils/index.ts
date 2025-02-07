@@ -11,7 +11,7 @@ interface TestCase extends AnyObject {
 interface TestConfig extends AnyObject {
     template_path: string;
     feature_path: string;
-    testCaseSchema: AnyObject;
+    schema: AnyObject;
     cases: TestCase[];
 }
 
@@ -46,17 +46,13 @@ export function generateFeatureFilesFromConfig(
     outputDir: string,
 ): void {
     try {
-        const { testCaseSchema } = testConfig;
-        const templatePath = path.join(inputDir, testConfig.template_path);
+        const { template_path, feature_path, schema, cases } = testConfig;
+        const templatePath = path.join(inputDir, template_path);
         const templateContent = fs.readFileSync(templatePath, "utf8");
 
-        const features = generateTestFeatureContentsFromTestCases(
-            templateContent,
-            testCaseSchema,
-            testConfig.cases,
-        );
+        const features = generateTestFeatureContentsFromTestCases(templateContent, schema, cases);
 
-        const featurePath = path.join(outputDir, testConfig.feature_path);
+        const featurePath = path.join(outputDir, feature_path);
         if (!fs.existsSync(featurePath)) {
             fs.mkdirSync(featurePath, { recursive: true });
         }

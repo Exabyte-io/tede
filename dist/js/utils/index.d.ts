@@ -5,7 +5,7 @@ interface TestCase extends AnyObject {
 interface TestConfig extends AnyObject {
     template_path: string;
     feature_path: string;
-    testCaseSchema: AnyObject;
+    schema: AnyObject;
     cases: TestCase[];
 }
 export declare function generateTestFeatureContentsFromTestCases(templateContent: string, testCaseSchema: AnyObject, testCaseConfigs: TestCase[]): Array<{

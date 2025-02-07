@@ -123,7 +123,7 @@ Feature: Healthcheck to import Material
         const testConfig = {
             template_path: "template.ftl",
             feature_path: featurePath,
-            testCaseSchema,
+            schema: testCaseSchema,
             cases: testCaseConfigs,
         };
         if (!fs.existsSync(tmpDir)) {
