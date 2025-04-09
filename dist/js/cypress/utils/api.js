@@ -1,13 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const cache_1 = require("./cache");
+function isHeaderKey(key) {
+    return Boolean(key.match(/header\.\d\.key/));
+}
+function isParamKey(key) {
+    return Boolean(key.match(/param\.\d\.key/));
+}
+function headerKeyToHeaderValue(key) {
+    return key.replace("key", "value");
+}
+function paramKeyToParamValue(key) {
+    return key.replace("key", "value");
+}
 class RestAPI {
     getHeaders(config) {
         return Object.keys(config)
-            .filter((key) => key.match(/header\.\d\.key/))
+            .filter(isHeaderKey)
             .reduce((acc, key) => {
             const headerKey = config[key];
-            const headerValue = config[key.replace("key", "value")];
+            const headerValue = config[headerKeyToHeaderValue(key)];
             if (typeof headerValue === "undefined" || typeof headerKey === "undefined") {
                 return acc;
             }
@@ -19,9 +31,9 @@ class RestAPI {
     }
     getParams(config) {
         return Object.keys(config)
-            .filter((key) => key.match(/param\.\d\.key/))
+            .filter(isParamKey)
             .reduce((acc, key) => {
-            const value = config[key.replace("key", "value")];
+            const value = config[paramKeyToParamValue(key)];
             if (typeof value === "undefined") {
                 return acc;
             }
@@ -51,6 +63,7 @@ class RestAPI {
                 body,
                 headers,
                 failOnStatusCode: false,
+                timeout: request.timeout ? Number(request.timeout) : undefined,
             });
         })
             .then((response) => {
