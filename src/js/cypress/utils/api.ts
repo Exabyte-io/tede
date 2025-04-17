@@ -1,12 +1,37 @@
 import { setCacheValue } from "./cache";
 
+type HeaderKey = `header.${number}.key`;
+type HeaderValue = `header.${number}.value`;
+type ParamKey = `param.${number}.key`;
+type ParamValue = `param.${number}.value`;
+
 /* eslint-disable class-methods-use-this */
 export interface Request {
     path: string;
     body: string;
     method: "POST" | "GET" | "PATCH" | "PUT" | "DELETE";
     cacheKey?: string;
-    [key: string]: string | undefined;
+    timeout?: `${number}` | number;
+    [key: HeaderKey]: string | undefined;
+    [key: HeaderValue]: string | undefined;
+    [key: ParamKey]: string | undefined;
+    [key: ParamValue]: string | undefined;
+}
+
+function isHeaderKey(key: string): key is HeaderKey {
+    return Boolean(key.match(/header\.\d\.key/));
+}
+
+function isParamKey(key: string): key is ParamKey {
+    return Boolean(key.match(/param\.\d\.key/));
+}
+
+function headerKeyToHeaderValue(key: HeaderKey): HeaderValue {
+    return key.replace("key", "value") as HeaderValue;
+}
+
+function paramKeyToParamValue(key: ParamKey): ParamValue {
+    return key.replace("key", "value") as ParamValue;
 }
 
 export interface Headers {
@@ -18,10 +43,10 @@ export type Body = object | undefined;
 export default class RestAPI {
     private getHeaders(config: Request): Headers {
         return Object.keys(config)
-            .filter((key) => key.match(/header\.\d\.key/))
+            .filter(isHeaderKey)
             .reduce<Headers>((acc, key) => {
                 const headerKey = config[key];
-                const headerValue = config[key.replace("key", "value")];
+                const headerValue = config[headerKeyToHeaderValue(key)];
 
                 if (typeof headerValue === "undefined" || typeof headerKey === "undefined") {
                     return acc;
@@ -36,9 +61,9 @@ export default class RestAPI {
 
     private getParams(config: Request) {
         return Object.keys(config)
-            .filter((key) => key.match(/param\.\d\.key/))
+            .filter(isParamKey)
             .reduce((acc, key) => {
-                const value = config[key.replace("key", "value")];
+                const value = config[paramKeyToParamValue(key)];
 
                 if (typeof value === "undefined") {
                     return acc;
@@ -74,6 +99,7 @@ export default class RestAPI {
                     body,
                     headers,
                     failOnStatusCode: false,
+                    timeout: request.timeout ? Number(request.timeout) : undefined,
                 });
             })
             .then((response) => {
