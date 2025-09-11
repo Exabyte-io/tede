@@ -7,7 +7,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Disabled until python codebase is added
   run-py-linter:
+    if: false
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -30,8 +32,9 @@ jobs:
         uses: ./actions/py/lint
         with:
           python-version: ${{ matrix.python-version }}
-
+  # Disabled until python codebase is added
   run-py-tests:
+    if: false
     needs: run-py-linter
     runs-on: ubuntu-latest
     strategy:
@@ -111,10 +114,12 @@ jobs:
           npm-token: ${{ secrets.NPM_TOKEN }}
           github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
 
+  # Disabled until python codebase is added
   publish-py-package:
     needs: publish-js-package
     runs-on: ubuntu-latest
-    if: (github.repository != 'Exabyte-io/template-definitions-js-py') && (github.ref_name == 'main')
+    # if: (github.repository != 'Exabyte-io/template-definitions-js-py') && (github.ref_name == 'main')
+    if: false
 
     steps:
       - name: Checkout this repository
