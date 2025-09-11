@@ -78,15 +78,13 @@ export function parseValue<T = string>(str: string): T {
 /**
  * Helper function to check if actual value matches expected value, handling CONTAINS logic and number conversion
  */
-export function assertTableValue(
-    actual: unknown,
-    expected: unknown,
-    originalValue: string,
-): boolean {
+export function assertTableValue(actual: any, expected: any, originalValue: string): boolean {
     if (originalValue && originalValue.startsWith("$CONTAINS{")) {
-        return typeof actual === "string" && actual.includes(String(expected));
+        const isContained = typeof actual === "string" && actual.includes(String(expected));
+        if (!isContained) {
+            throw new Error(`Expected value "${actual}" to contain "${expected}"`);
+        } else return true;
     }
-
     return Utils.assertion.assertShallowDeepAlmostEqual(actual, expected);
 }
 
@@ -115,21 +113,7 @@ export function assertEqualityForTable(table: DataTable, response: Record<string
         const expectedValue = parsedConfig[key];
         const originalValue = originalHashes[key];
 
-        const isMatch = assertTableValue(actualValue, expectedValue, originalValue);
-
-        if (!isMatch) {
-            if (originalValue && originalValue.startsWith("$CONTAINS{")) {
-                throw new Error(`Expected "${actualValue}" to contain "${expectedValue}"`);
-            } else if (originalValue && originalValue.startsWith("$JSON{")) {
-                throw new Error(
-                    `Expected JSON values to match: actual=${JSON.stringify(
-                        actualValue,
-                    )}, expected=${JSON.stringify(expectedValue)}`,
-                );
-            } else {
-                throw new Error(`Expected "${actualValue}" to equal "${expectedValue}"`);
-            }
-        }
+        return assertTableValue(actualValue, expectedValue, originalValue);
     });
 }
 
