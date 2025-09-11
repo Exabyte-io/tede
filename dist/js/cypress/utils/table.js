@@ -70,7 +70,7 @@ function evalExpression(str) {
 function parseValue(str) {
     // eslint-disable-next-line no-shadow, no-use-before-define, @typescript-eslint/no-use-before-define
     const config = REGEXES.find((config) => str.match(config.regex));
-    return (config ? config.func(str, config.regex, context) : str);
+    return (config ? config.func(str, config.regex, {}) : str);
 }
 exports.parseValue = parseValue;
 /**
@@ -196,6 +196,17 @@ const REGEXES = [
             const value = matchRegexp(str, regex);
             const [contextKey, property] = value.split(":");
             return parseValue(str.replace(`$CACHE{${value}}`, (0, get_1.default)((0, cache_1.getCacheValue)(contextKey), property)));
+        },
+    },
+    {
+        name: "CONTAINS_STRING",
+        regex: /^\$CONTAINS\{(.*)}/,
+        func: (str, regex) => {
+            const match = str.match(regex);
+            if (!match) {
+                return null;
+            }
+            return (str.indexOf(match[1]) !== -1);
         },
     },
 ];
