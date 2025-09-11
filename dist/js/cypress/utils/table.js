@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseTable = exports.parseValue = void 0;
+exports.REGEXES = exports.parseTable = exports.parseValue = void 0;
 const get_1 = __importDefault(require("lodash/get"));
 const moment_1 = __importDefault(require("moment"));
 const random_seed_1 = __importDefault(require("random-seed"));
@@ -69,7 +69,7 @@ function evalExpression(str) {
  */
 function parseValue(str) {
     // eslint-disable-next-line no-shadow, no-use-before-define, @typescript-eslint/no-use-before-define
-    const config = REGEXES.find((config) => str.match(config.regex));
+    const config = exports.REGEXES.find((config) => str.match(config.regex));
     return (config ? config.func(str, config.regex, {}) : str);
 }
 exports.parseValue = parseValue;
@@ -115,7 +115,7 @@ function matchRegexp(str, regex) {
     }
     return match[1];
 }
-const REGEXES = [
+exports.REGEXES = [
     {
         name: "DATE_REGEX",
         regex: /^\$DATE\{(.*)}/,
@@ -206,7 +206,7 @@ const REGEXES = [
             if (!match) {
                 return null;
             }
-            return (str.indexOf(match[1]) !== -1);
+            return match[1];
         },
     },
 ];

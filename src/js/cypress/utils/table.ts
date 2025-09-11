@@ -137,7 +137,7 @@ function matchRegexp(str: string, regex: RegExp): string {
     return match[1];
 }
 
-const REGEXES: Regex[] = [
+export const REGEXES: Regex[] = [
     {
         name: "DATE_REGEX",
         regex: /^\$DATE\{(.*)}/,
@@ -230,7 +230,7 @@ const REGEXES: Regex[] = [
             if (!match) {
                 return null;
             }
-            return (str.indexOf(match[1]) !== -1) as unknown;
+            return match[1];
         },
     },
 ];

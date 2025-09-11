@@ -9,3 +9,10 @@ export declare function parseValue<T = string>(str: string): T;
  * @param context  Context for extracting cached values.
  */
 export declare function parseTable<T = object>(table: DataTable): T[];
+interface Regex {
+    name: string;
+    regex: RegExp;
+    func: (str: string, regex: RegExp, context: object) => unknown;
+}
+export declare const REGEXES: Regex[];
+export {};
