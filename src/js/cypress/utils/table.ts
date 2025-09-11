@@ -100,20 +100,21 @@ function normalizeNumbers(value: unknown): unknown {
 /**
  * Helper function to check if actual value matches expected value, handling CONTAINS logic and number conversion
  */
-export function assertTableValue(actual: unknown, expected: unknown, originalValue: string): boolean {
+export function assertTableValue(
+    actual: unknown,
+    expected: unknown,
+    originalValue: string,
+): boolean {
     if (originalValue && originalValue.startsWith("$CONTAINS{")) {
-        // For CONTAINS patterns, check substring
         return typeof actual === "string" && actual.includes(String(expected));
     }
-    
-    // For JSON patterns, normalize numbers in both actual and expected values
+
     if (originalValue && originalValue.startsWith("$JSON{")) {
         const normalizedActual = normalizeNumbers(actual);
         const normalizedExpected = normalizeNumbers(expected);
         return JSON.stringify(normalizedActual) === JSON.stringify(normalizedExpected);
     }
-    
-    // For regular values, use strict equality
+
     return actual === expected;
 }
 
@@ -133,22 +134,26 @@ export function parseTable<T = object>(table: DataTable): T[] {
 /**
  * Compares actual values against table expectations, handling CONTAINS and JSON patterns
  */
-export function assertEqualityForTable(table: DataTable, actualValues: Record<string, unknown>): void {
-    const originalHashes = table.hashes()[0]; // Original unparsed values
-    const parsedConfig = parseTable(table)[0] as Record<string, unknown>; // Parsed values
-    
+export function assertEqualityForTable(table: DataTable, response: Record<string, unknown>): void {
+    const originalHashes = table.hashes()[0];
+    const parsedConfig = parseTable(table)[0] as Record<string, unknown>;
+
     Object.keys(parsedConfig).forEach((key) => {
-        const actualValue = actualValues[key];
+        const actualValue = getValue(response, key);
         const expectedValue = parsedConfig[key];
         const originalValue = originalHashes[key];
-        
+
         const isMatch = assertTableValue(actualValue, expectedValue, originalValue);
-        
+
         if (!isMatch) {
             if (originalValue && originalValue.startsWith("$CONTAINS{")) {
                 throw new Error(`Expected "${actualValue}" to contain "${expectedValue}"`);
             } else if (originalValue && originalValue.startsWith("$JSON{")) {
-                throw new Error(`Expected JSON values to match: actual=${JSON.stringify(actualValue)}, expected=${JSON.stringify(expectedValue)}`);
+                throw new Error(
+                    `Expected JSON values to match: actual=${JSON.stringify(
+                        actualValue,
+                    )}, expected=${JSON.stringify(expectedValue)}`,
+                );
             } else {
                 throw new Error(`Expected "${actualValue}" to equal "${expectedValue}"`);
             }

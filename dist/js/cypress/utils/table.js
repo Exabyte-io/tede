@@ -128,11 +128,12 @@ exports.parseTable = parseTable;
 /**
  * Compares actual values against table expectations, handling CONTAINS and JSON patterns
  */
-function assertEqualityForTable(table, actualValues) {
+function assertEqualityForTable(table, response) {
     const originalHashes = table.hashes()[0]; // Original unparsed values
     const parsedConfig = parseTable(table)[0]; // Parsed values
     Object.keys(parsedConfig).forEach((key) => {
-        const actualValue = actualValues[key];
+        // Use lodash.get to extract nested values like "data.name"
+        const actualValue = (0, get_1.default)(response, key);
         const expectedValue = parsedConfig[key];
         const originalValue = originalHashes[key];
         const isMatch = assertTableValue(actualValue, expectedValue, originalValue);

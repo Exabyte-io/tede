@@ -16,7 +16,7 @@ export declare function parseTable<T = object>(table: DataTable): T[];
 /**
  * Compares actual values against table expectations, handling CONTAINS and JSON patterns
  */
-export declare function assertEqualityForTable(table: DataTable, actualValues: Record<string, unknown>): void;
+export declare function assertEqualityForTable(table: DataTable, response: Record<string, unknown>): void;
 interface Regex {
     name: string;
     regex: RegExp;
