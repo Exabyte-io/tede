@@ -298,7 +298,7 @@ export const REGEXES: Regex[] = [
     },
     {
         name: "CONTAINS_STRING",
-        regex: /^\$CONTAINS\{(.*)}/,
+        regex: /^\$CONTAINS\{([\s\S]*)}/,
         func: (str, regex) => {
             const match = str.match(regex);
             if (!match) {

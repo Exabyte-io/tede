@@ -100,16 +100,13 @@ function normalizeNumbers(value) {
  */
 function assertTableValue(actual, expected, originalValue) {
     if (originalValue && originalValue.startsWith("$CONTAINS{")) {
-        // For CONTAINS patterns, check substring
         return typeof actual === "string" && actual.includes(String(expected));
     }
-    // For JSON patterns, normalize numbers in both actual and expected values
     if (originalValue && originalValue.startsWith("$JSON{")) {
         const normalizedActual = normalizeNumbers(actual);
         const normalizedExpected = normalizeNumbers(expected);
         return JSON.stringify(normalizedActual) === JSON.stringify(normalizedExpected);
     }
-    // For regular values, use strict equality
     return actual === expected;
 }
 exports.assertTableValue = assertTableValue;
@@ -129,20 +126,19 @@ exports.parseTable = parseTable;
  * Compares actual values against table expectations, handling CONTAINS and JSON patterns
  */
 function assertEqualityForTable(table, response) {
-    const originalHashes = table.hashes()[0]; // Original unparsed values
-    const parsedConfig = parseTable(table)[0]; // Parsed values
+    const originalHashes = table.hashes()[0];
+    const parsedConfig = parseTable(table)[0];
     Object.keys(parsedConfig).forEach((key) => {
-        // Use lodash.get to extract nested values like "data.name"
         const actualValue = (0, get_1.default)(response, key);
         const expectedValue = parsedConfig[key];
         const originalValue = originalHashes[key];
         const isMatch = assertTableValue(actualValue, expectedValue, originalValue);
         if (!isMatch) {
             if (originalValue && originalValue.startsWith("$CONTAINS{")) {
-                throw new Error(`Expected "${actualValue}" to contain "${expectedValue}"`);
+                throw new Error(`Expected "${actualValue}" to contain "${expectedValue}" (from pattern: ${originalValue})`);
             }
             else if (originalValue && originalValue.startsWith("$JSON{")) {
-                throw new Error(`Expected JSON values to match: actual=${JSON.stringify(actualValue)}, expected=${JSON.stringify(expectedValue)}`);
+                throw new Error(`Expected JSON values to match: actual=${JSON.stringify(actualValue)}, expected=${JSON.stringify(expectedValue)} (from pattern: ${originalValue})`);
             }
             else {
                 throw new Error(`Expected "${actualValue}" to equal "${expectedValue}"`);
@@ -266,7 +262,7 @@ exports.REGEXES = [
     },
     {
         name: "CONTAINS_STRING",
-        regex: /^\$CONTAINS\{(.*)}/,
+        regex: /^\$CONTAINS\{([\s\S]*)}/,
         func: (str, regex) => {
             const match = str.match(regex);
             if (!match) {
