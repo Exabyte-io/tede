@@ -1,4 +1,5 @@
 import { DataTable } from "@badeball/cypress-cucumber-preprocessor";
+import Utils from "@mat3ra/utils";
 import getValue from "lodash/get";
 import moment, { unitOfTime } from "moment";
 import random from "random-seed";
@@ -75,29 +76,6 @@ export function parseValue<T = string>(str: string): T {
 }
 
 /**
- * Converts string numbers to numbers in arrays and objects recursively
- */
-function normalizeNumbers(value: unknown): unknown {
-    if (Array.isArray(value)) {
-        return value.map(normalizeNumbers);
-    }
-    if (typeof value === "object" && value !== null) {
-        const result: Record<string, unknown> = {};
-        for (const [key, val] of Object.entries(value)) {
-            result[key] = normalizeNumbers(val);
-        }
-        return result;
-    }
-    if (typeof value === "string" && /^\d+$/.test(value)) {
-        return parseInt(value, 10);
-    }
-    if (typeof value === "string" && /^\d+\.\d+$/.test(value)) {
-        return parseFloat(value);
-    }
-    return value;
-}
-
-/**
  * Helper function to check if actual value matches expected value, handling CONTAINS logic and number conversion
  */
 export function assertTableValue(
@@ -109,13 +87,7 @@ export function assertTableValue(
         return typeof actual === "string" && actual.includes(String(expected));
     }
 
-    if (originalValue && originalValue.startsWith("$JSON{")) {
-        const normalizedActual = normalizeNumbers(actual);
-        const normalizedExpected = normalizeNumbers(expected);
-        return JSON.stringify(normalizedActual) === JSON.stringify(normalizedExpected);
-    }
-
-    return actual === expected;
+    return Utils.assertion.assertShallowDeepAlmostEqual(actual, expected);
 }
 
 /**
