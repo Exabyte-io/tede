@@ -1,5 +1,5 @@
 import { DataTable } from "@badeball/cypress-cucumber-preprocessor";
-import Utils from "@mat3ra/utils";
+import { Utils } from "@mat3ra/utils";
 import getValue from "lodash/get";
 import moment, { unitOfTime } from "moment";
 import random from "random-seed";
