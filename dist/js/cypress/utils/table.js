@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseTable = exports.parseValue = void 0;
+exports.REGEXES = exports.assertEqualityForTable = exports.parseTable = exports.assertTableValue = exports.parseValue = void 0;
 const get_1 = __importDefault(require("lodash/get"));
 const moment_1 = __importDefault(require("moment"));
 const random_seed_1 = __importDefault(require("random-seed"));
@@ -69,10 +69,47 @@ function evalExpression(str) {
  */
 function parseValue(str) {
     // eslint-disable-next-line no-shadow, no-use-before-define, @typescript-eslint/no-use-before-define
-    const config = REGEXES.find((config) => str.match(config.regex));
-    return (config ? config.func(str, config.regex, context) : str);
+    const config = exports.REGEXES.find((config) => str.match(config.regex));
+    return (config ? config.func(str, config.regex, {}) : str);
 }
 exports.parseValue = parseValue;
+/**
+ * Converts string numbers to numbers in arrays and objects recursively
+ */
+function normalizeNumbers(value) {
+    if (Array.isArray(value)) {
+        return value.map(normalizeNumbers);
+    }
+    if (typeof value === "object" && value !== null) {
+        const result = {};
+        for (const [key, val] of Object.entries(value)) {
+            result[key] = normalizeNumbers(val);
+        }
+        return result;
+    }
+    if (typeof value === "string" && /^\d+$/.test(value)) {
+        return parseInt(value, 10);
+    }
+    if (typeof value === "string" && /^\d+\.\d+$/.test(value)) {
+        return parseFloat(value);
+    }
+    return value;
+}
+/**
+ * Helper function to check if actual value matches expected value, handling CONTAINS logic and number conversion
+ */
+function assertTableValue(actual, expected, originalValue) {
+    if (originalValue && originalValue.startsWith("$CONTAINS{")) {
+        return typeof actual === "string" && actual.includes(String(expected));
+    }
+    if (originalValue && originalValue.startsWith("$JSON{")) {
+        const normalizedActual = normalizeNumbers(actual);
+        const normalizedExpected = normalizeNumbers(expected);
+        return JSON.stringify(normalizedActual) === JSON.stringify(normalizedExpected);
+    }
+    return actual === expected;
+}
+exports.assertTableValue = assertTableValue;
 /**
  * @summary Parses values from table rows. Each column's value for each row are parsed by parseValue.
  * @param table Table passed from Cucumber step definition.
@@ -85,6 +122,31 @@ function parseTable(table) {
     });
 }
 exports.parseTable = parseTable;
+/**
+ * Compares actual values against table expectations, handling CONTAINS and JSON patterns
+ */
+function assertEqualityForTable(table, response) {
+    const originalHashes = table.hashes()[0];
+    const parsedConfig = parseTable(table)[0];
+    Object.keys(parsedConfig).forEach((key) => {
+        const actualValue = (0, get_1.default)(response, key);
+        const expectedValue = parsedConfig[key];
+        const originalValue = originalHashes[key];
+        const isMatch = assertTableValue(actualValue, expectedValue, originalValue);
+        if (!isMatch) {
+            if (originalValue && originalValue.startsWith("$CONTAINS{")) {
+                throw new Error(`Expected "${actualValue}" to contain "${expectedValue}" (from pattern: ${originalValue})`);
+            }
+            else if (originalValue && originalValue.startsWith("$JSON{")) {
+                throw new Error(`Expected JSON values to match: actual=${JSON.stringify(actualValue)}, expected=${JSON.stringify(expectedValue)} (from pattern: ${originalValue})`);
+            }
+            else {
+                throw new Error(`Expected "${actualValue}" to equal "${expectedValue}"`);
+            }
+        }
+    });
+}
+exports.assertEqualityForTable = assertEqualityForTable;
 /**
  * Parses basis string in format "Si 0 0 0, Li 0.5 0.5 0.5" and returns it as an object in exabyte internal format.
  */
@@ -115,7 +177,7 @@ function matchRegexp(str, regex) {
     }
     return match[1];
 }
-const REGEXES = [
+exports.REGEXES = [
     {
         name: "DATE_REGEX",
         regex: /^\$DATE\{(.*)}/,
@@ -196,6 +258,17 @@ const REGEXES = [
             const value = matchRegexp(str, regex);
             const [contextKey, property] = value.split(":");
             return parseValue(str.replace(`$CACHE{${value}}`, (0, get_1.default)((0, cache_1.getCacheValue)(contextKey), property)));
+        },
+    },
+    {
+        name: "CONTAINS_STRING",
+        regex: /^\$CONTAINS\{([\s\S]*)}/,
+        func: (str, regex) => {
+            const match = str.match(regex);
+            if (!match) {
+                return null;
+            }
+            return match[1];
         },
     },
 ];

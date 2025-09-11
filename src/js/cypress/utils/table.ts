@@ -1,4 +1,5 @@
 import { DataTable } from "@badeball/cypress-cucumber-preprocessor";
+import { Utils } from "@mat3ra/utils";
 import getValue from "lodash/get";
 import moment, { unitOfTime } from "moment";
 import random from "random-seed";
@@ -71,7 +72,20 @@ function evalExpression(str: string) {
 export function parseValue<T = string>(str: string): T {
     // eslint-disable-next-line no-shadow, no-use-before-define, @typescript-eslint/no-use-before-define
     const config = REGEXES.find((config) => str.match(config.regex));
-    return (config ? config.func(str, config.regex, context) : str) as T;
+    return (config ? config.func(str, config.regex, {}) : str) as T;
+}
+
+/**
+ * Helper function to check if actual value matches expected value, handling CONTAINS logic and number conversion
+ */
+export function assertTableValue(actual: any, expected: any, originalValue: string): boolean {
+    if (originalValue && originalValue.startsWith("$CONTAINS{")) {
+        const isContained = typeof actual === "string" && actual.includes(String(expected));
+        if (!isContained) {
+            throw new Error(`Expected value "${actual}" to contain "${expected}"`);
+        } else return true;
+    }
+    return Utils.assertion.assertShallowDeepAlmostEqual(actual, expected);
 }
 
 /**
@@ -84,6 +98,22 @@ export function parseTable<T = object>(table: DataTable): T[] {
         const entries = Object.entries(hash).map(([key, value]) => [key, parseValue(value) as T]);
 
         return Object.fromEntries(entries);
+    });
+}
+
+/**
+ * Compares actual values against table expectations, handling CONTAINS and JSON patterns
+ */
+export function assertEqualityForTable(table: DataTable, response: Record<string, unknown>): void {
+    const originalHashes = table.hashes()[0];
+    const parsedConfig = parseTable(table)[0] as Record<string, unknown>;
+
+    Object.keys(parsedConfig).forEach((key) => {
+        const actualValue = getValue(response, key);
+        const expectedValue = parsedConfig[key];
+        const originalValue = originalHashes[key];
+
+        return assertTableValue(actualValue, expectedValue, originalValue);
     });
 }
 
@@ -137,7 +167,7 @@ function matchRegexp(str: string, regex: RegExp): string {
     return match[1];
 }
 
-const REGEXES: Regex[] = [
+export const REGEXES: Regex[] = [
     {
         name: "DATE_REGEX",
         regex: /^\$DATE\{(.*)}/,
@@ -220,6 +250,17 @@ const REGEXES: Regex[] = [
             return parseValue(
                 str.replace(`$CACHE{${value}}`, getValue(getCacheValue(contextKey), property)),
             );
+        },
+    },
+    {
+        name: "CONTAINS_STRING",
+        regex: /^\$CONTAINS\{([\s\S]*)}/,
+        func: (str, regex) => {
+            const match = str.match(regex);
+            if (!match) {
+                return null;
+            }
+            return match[1];
         },
     },
 ];
