@@ -75,6 +75,49 @@ export function parseValue<T = string>(str: string): T {
 }
 
 /**
+ * Converts string numbers to numbers in arrays and objects recursively
+ */
+function normalizeNumbers(value: unknown): unknown {
+    if (Array.isArray(value)) {
+        return value.map(normalizeNumbers);
+    }
+    if (typeof value === "object" && value !== null) {
+        const result: Record<string, unknown> = {};
+        for (const [key, val] of Object.entries(value)) {
+            result[key] = normalizeNumbers(val);
+        }
+        return result;
+    }
+    if (typeof value === "string" && /^\d+$/.test(value)) {
+        return parseInt(value, 10);
+    }
+    if (typeof value === "string" && /^\d+\.\d+$/.test(value)) {
+        return parseFloat(value);
+    }
+    return value;
+}
+
+/**
+ * Helper function to check if actual value matches expected value, handling CONTAINS logic and number conversion
+ */
+export function assertTableValue(actual: unknown, expected: unknown, originalValue: string): boolean {
+    if (originalValue && originalValue.startsWith("$CONTAINS{")) {
+        // For CONTAINS patterns, check substring
+        return typeof actual === "string" && actual.includes(String(expected));
+    }
+    
+    // For JSON patterns, normalize numbers in both actual and expected values
+    if (originalValue && originalValue.startsWith("$JSON{")) {
+        const normalizedActual = normalizeNumbers(actual);
+        const normalizedExpected = normalizeNumbers(expected);
+        return JSON.stringify(normalizedActual) === JSON.stringify(normalizedExpected);
+    }
+    
+    // For regular values, use strict equality
+    return actual === expected;
+}
+
+/**
  * @summary Parses values from table rows. Each column's value for each row are parsed by parseValue.
  * @param table Table passed from Cucumber step definition.
  * @param context  Context for extracting cached values.
@@ -84,6 +127,32 @@ export function parseTable<T = object>(table: DataTable): T[] {
         const entries = Object.entries(hash).map(([key, value]) => [key, parseValue(value) as T]);
 
         return Object.fromEntries(entries);
+    });
+}
+
+/**
+ * Compares actual values against table expectations, handling CONTAINS and JSON patterns
+ */
+export function assertEqualityForTable(table: DataTable, actualValues: Record<string, unknown>): void {
+    const originalHashes = table.hashes()[0]; // Original unparsed values
+    const parsedConfig = parseTable(table)[0] as Record<string, unknown>; // Parsed values
+    
+    Object.keys(parsedConfig).forEach((key) => {
+        const actualValue = actualValues[key];
+        const expectedValue = parsedConfig[key];
+        const originalValue = originalHashes[key];
+        
+        const isMatch = assertTableValue(actualValue, expectedValue, originalValue);
+        
+        if (!isMatch) {
+            if (originalValue && originalValue.startsWith("$CONTAINS{")) {
+                throw new Error(`Expected "${actualValue}" to contain "${expectedValue}"`);
+            } else if (originalValue && originalValue.startsWith("$JSON{")) {
+                throw new Error(`Expected JSON values to match: actual=${JSON.stringify(actualValue)}, expected=${JSON.stringify(expectedValue)}`);
+            } else {
+                throw new Error(`Expected "${actualValue}" to equal "${expectedValue}"`);
+            }
+        }
     });
 }
 

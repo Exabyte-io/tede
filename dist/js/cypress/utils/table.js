@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.REGEXES = exports.parseTable = exports.parseValue = void 0;
+exports.REGEXES = exports.assertEqualityForTable = exports.parseTable = exports.assertTableValue = exports.parseValue = void 0;
 const get_1 = __importDefault(require("lodash/get"));
 const moment_1 = __importDefault(require("moment"));
 const random_seed_1 = __importDefault(require("random-seed"));
@@ -74,6 +74,46 @@ function parseValue(str) {
 }
 exports.parseValue = parseValue;
 /**
+ * Converts string numbers to numbers in arrays and objects recursively
+ */
+function normalizeNumbers(value) {
+    if (Array.isArray(value)) {
+        return value.map(normalizeNumbers);
+    }
+    if (typeof value === "object" && value !== null) {
+        const result = {};
+        for (const [key, val] of Object.entries(value)) {
+            result[key] = normalizeNumbers(val);
+        }
+        return result;
+    }
+    if (typeof value === "string" && /^\d+$/.test(value)) {
+        return parseInt(value, 10);
+    }
+    if (typeof value === "string" && /^\d+\.\d+$/.test(value)) {
+        return parseFloat(value);
+    }
+    return value;
+}
+/**
+ * Helper function to check if actual value matches expected value, handling CONTAINS logic and number conversion
+ */
+function assertTableValue(actual, expected, originalValue) {
+    if (originalValue && originalValue.startsWith("$CONTAINS{")) {
+        // For CONTAINS patterns, check substring
+        return typeof actual === "string" && actual.includes(String(expected));
+    }
+    // For JSON patterns, normalize numbers in both actual and expected values
+    if (originalValue && originalValue.startsWith("$JSON{")) {
+        const normalizedActual = normalizeNumbers(actual);
+        const normalizedExpected = normalizeNumbers(expected);
+        return JSON.stringify(normalizedActual) === JSON.stringify(normalizedExpected);
+    }
+    // For regular values, use strict equality
+    return actual === expected;
+}
+exports.assertTableValue = assertTableValue;
+/**
  * @summary Parses values from table rows. Each column's value for each row are parsed by parseValue.
  * @param table Table passed from Cucumber step definition.
  * @param context  Context for extracting cached values.
@@ -85,6 +125,31 @@ function parseTable(table) {
     });
 }
 exports.parseTable = parseTable;
+/**
+ * Compares actual values against table expectations, handling CONTAINS and JSON patterns
+ */
+function assertEqualityForTable(table, actualValues) {
+    const originalHashes = table.hashes()[0]; // Original unparsed values
+    const parsedConfig = parseTable(table)[0]; // Parsed values
+    Object.keys(parsedConfig).forEach((key) => {
+        const actualValue = actualValues[key];
+        const expectedValue = parsedConfig[key];
+        const originalValue = originalHashes[key];
+        const isMatch = assertTableValue(actualValue, expectedValue, originalValue);
+        if (!isMatch) {
+            if (originalValue && originalValue.startsWith("$CONTAINS{")) {
+                throw new Error(`Expected "${actualValue}" to contain "${expectedValue}"`);
+            }
+            else if (originalValue && originalValue.startsWith("$JSON{")) {
+                throw new Error(`Expected JSON values to match: actual=${JSON.stringify(actualValue)}, expected=${JSON.stringify(expectedValue)}`);
+            }
+            else {
+                throw new Error(`Expected "${actualValue}" to equal "${expectedValue}"`);
+            }
+        }
+    });
+}
+exports.assertEqualityForTable = assertEqualityForTable;
 /**
  * Parses basis string in format "Si 0 0 0, Li 0.5 0.5 0.5" and returns it as an object in exabyte internal format.
  */
