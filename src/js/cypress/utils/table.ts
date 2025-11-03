@@ -247,9 +247,10 @@ export const REGEXES: Regex[] = [
         func: (str, regex) => {
             const value = matchRegexp(str, regex);
             const [contextKey, property] = value.split(":");
-            return parseValue(
-                str.replace(`$CACHE{${value}}`, getValue(getCacheValue(contextKey), property)),
-            );
+            const cachedValue = getCacheValue(contextKey);
+            const parsedValue = property ? getValue(cachedValue, property) : cachedValue;
+
+            return parseValue(str.replace(`$CACHE{${value}}`, parsedValue));
         },
     },
     {
