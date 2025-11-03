@@ -20,7 +20,7 @@
         "@babel/preset-typescript": "^7.22.5",
         "@babel/register": "^7.16.0",
         "@babel/runtime-corejs3": "7.16.8",
-        "@badeball/cypress-cucumber-preprocessor": "^20.0.0",
+        "@badeball/cypress-cucumber-preprocessor": "^22.2.0",
         "@cypress/xpath": "^2.0.3",
         "@mat3ra/esse": "^2025.1.27-0",
         "@mat3ra/utils": "^2025.2.7-0",
