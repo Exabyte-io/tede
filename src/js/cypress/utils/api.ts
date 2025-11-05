@@ -12,6 +12,7 @@ export interface Request {
     method: "POST" | "GET" | "PATCH" | "PUT" | "DELETE";
     cacheKey?: string;
     timeout?: `${number}` | number;
+    formUrlEncoded?: boolean;
     [key: HeaderKey]: string | undefined;
     [key: HeaderValue]: string | undefined;
     [key: ParamKey]: string | undefined;
@@ -38,7 +39,7 @@ export interface Headers {
     [key: string]: string;
 }
 
-export type Body = object | undefined;
+export type Body = object | string | undefined;
 
 export default class RestAPI {
     private getHeaders(config: Request): Headers {
@@ -73,10 +74,27 @@ export default class RestAPI {
             }, "");
     }
 
-    private getBody(config: Request) {
+    private getBody(config: Request): Cypress.Chainable<Body> {
         let body: Body;
 
         if (config.body) {
+            if (config.formUrlEncoded) {
+                // For form-urlencoded, parse JSON and convert to URL-encoded string
+                try {
+                    const bodyObj = JSON.parse(config.body);
+                    const pairs = Object.entries(bodyObj).map(
+                        ([key, value]) =>
+                            `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`,
+                    );
+                    body = pairs.join("&");
+                } catch (e) {
+                    // If not valid JSON, treat as already formatted URL-encoded string
+                    body = config.body;
+                }
+
+                return cy.wrap(body as Body);
+            }
+
             try {
                 body = JSON.parse(config.body);
             } catch (e) {
@@ -90,6 +108,11 @@ export default class RestAPI {
     sendRequest(request: Request) {
         const headers = this.getHeaders(request);
         const params = this.getParams(request);
+
+        // Set Content-Type header for form-urlencoded if not already set
+        if (request.formUrlEncoded && !headers["Content-Type"] && !headers["content-type"]) {
+            headers["Content-Type"] = "application/x-www-form-urlencoded";
+        }
 
         return this.getBody(request)
             .then((body) => {
@@ -106,6 +129,7 @@ export default class RestAPI {
                 if (request.cacheKey) {
                     setCacheValue(request.cacheKey, response.body);
                 }
+                return response;
             });
     }
 }
