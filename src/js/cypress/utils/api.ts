@@ -128,6 +128,7 @@ export default class RestAPI {
             .then((response) => {
                 if (request.cacheKey) {
                     setCacheValue(request.cacheKey, response.body);
+                    setCacheValue(`${request.cacheKey}.status`, response.status);
                 }
                 return response;
             });
